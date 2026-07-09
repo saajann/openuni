@@ -28,7 +28,11 @@ openuni/
 ├── infra/            # docker-compose, Nginx, deployment configs
 ├── docs/             # Architecture docs, ADRs, contribution guide
 │
+├── .github/
+│   ├── ISSUE_TEMPLATE/ # Bug, feature & task issue templates
+│   └── pull_request_template.md
 ├── .gitignore
+├── CONTRIBUTING.md   # How to contribute
 ├── LICENSE
 ├── VISION.md
 └── README.md         # ← you are here
@@ -49,8 +53,13 @@ openuni/
 
 ## Contributing
 
-Each subdirectory has its own `README.md` explaining its purpose and planned structure.  
-Start there, then check `docs/` for architecture context and contribution guidelines (coming soon).
+We welcome contributions of all kinds! Please read **[CONTRIBUTING.md](./CONTRIBUTING.md)** before opening an issue or pull request. It covers:
+
+- Branch naming & commit message conventions
+- How to open a focused, well-scoped PR
+- Code style expectations
+
+Each subdirectory also has its own `README.md` explaining its purpose and structure. Start there, then check `docs/` for architecture context.
 
 ---
 
