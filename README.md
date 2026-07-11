@@ -51,6 +51,41 @@ openuni/
 
 ---
 
+## Local development
+
+You only need **Docker** installed.  No Python, Node, or databases required on your machine.
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/your-org/openuni.git
+cd openuni
+
+# 2. Copy the env template
+cp .env.example .env
+
+# 3. Start the full stack
+docker compose -f infra/docker-compose.yml up --build
+```
+
+This brings up three services:
+
+| Service  | URL                     | Notes                           |
+|----------|-------------------------|---------------------------------|
+| API      | http://localhost:8000   | `/docs` for interactive Swagger |
+| Qdrant   | http://localhost:6333   | Vector DB dashboard             |
+| Postgres | localhost:5432          | Any Postgres client works       |
+
+Verify the API is healthy:
+
+```bash
+curl http://localhost:8000/health
+# → {"status": "ok"}
+```
+
+See **[apps/api/README.md](./apps/api/README.md)** for more details (env vars, local-without-Docker setup, endpoint reference).
+
+---
+
 ## Contributing
 
 We welcome contributions of all kinds! Please read **[CONTRIBUTING.md](./CONTRIBUTING.md)** before opening an issue or pull request. It covers:
