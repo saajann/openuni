@@ -1,0 +1,82 @@
+# infra/docker-compose.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# One-command local dev environment.
+#
+#   cp .env.example .env            # from the repo root
+#   docker compose -f infra/docker-compose.yml up --build
+#
+# Services
+#   qdrant   → http://localhost:6333   (REST API + dashboard)
+#   postgres → localhost:5432
+#   api      → http://localhost:8000
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Vector store ─────────────────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # REST / gRPC-HTTP
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Relational database ───────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-openuni}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openuni}
+      POSTGRES_DB: ${POSTGRES_DB:-openuni}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openuni} -d ${POSTGRES_DB:-openuni}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── FastAPI backend ───────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://openuni:openuni@postgres:5432/openuni}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ../apps/api/app
+          target: /app/app
+          ignore:
+            - __pycache__/
+
+volumes:
+  qdrant_data:
+  postgres_data:
