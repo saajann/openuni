@@ -1,0 +1,8 @@
+slug: "demo"
+name: "Demo University"
+locale: "en"
+domain: "example.edu"
+qdrant_collection: "demo_collection"
+sources:
+  - "https://example.edu/handbook.pdf"
+  - "student-guidelines.md"
