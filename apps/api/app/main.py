@@ -8,25 +8,30 @@ Start locally (outside Docker):
 """
 
 
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+import httpx
+import psycopg
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+from app.core import universities
+from app.core.config import Settings, get_settings
+
+
 def _psycopg_dsn(sqlalchemy_url: str) -> str:
     """Convert a SQLAlchemy dialect URL to a bare psycopg3 DSN.
 
     SQLAlchemy uses ``postgresql+psycopg://…`` as its dialect specifier;
     psycopg3's ``AsyncConnection.connect`` only accepts ``postgresql://…``.
     """
-    return sqlalchemy_url.replace("postgresql+psycopg", "postgresql", 1)
+    return sqlalchemy_url.replace(
+        "postgresql+psycopg", "postgresql", 1
+    )
 
-
-import logging
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
-
-import httpx
-import psycopg
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
-
-from app.core.config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +60,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: RUF029
         logger.info("✓ Qdrant reachable at %s", settings.qdrant_url)
     except Exception as exc:
         logger.warning("✗ Qdrant not reachable: %s", exc)
+
+    # ── Load Universities ────────────────────────────────────────────────────
+    universities.load_universities()
 
     yield  # application runs here
 
@@ -86,6 +94,26 @@ def create_app() -> FastAPI:
         )
 
     # ── Routes ────────────────────────────────────────────────────────────────
+    class UniversityPublic(BaseModel):
+        slug: str
+        name: str
+        locale: str
+        domain: str
+
+    @application.get(
+        "/universities",
+        summary="List available universities",
+        tags=["universities"],
+        response_model=list[UniversityPublic],
+    )
+    async def get_universities() -> list[UniversityPublic]:
+        """Return the list of onboarded universities."""
+        loaded = universities.list_universities()
+        return [
+            UniversityPublic(slug=u.slug, name=u.name, locale=u.locale, domain=u.domain)
+            for u in loaded
+        ]
+
     @application.get(
         "/health",
         summary="Health check",
@@ -120,7 +148,8 @@ def create_app() -> FastAPI:
 
         # Postgres
         try:
-            conn = await psycopg.AsyncConnection.connect(_psycopg_dsn(str(settings_obj.database_url)))
+            dsn = _psycopg_dsn(str(settings_obj.database_url))
+            conn = await psycopg.AsyncConnection.connect(dsn)
             await conn.close()
             checks["postgres"] = "ok"
         except Exception as exc:

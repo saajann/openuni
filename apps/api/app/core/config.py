@@ -7,6 +7,7 @@ messages if something required is missing.
 """
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import AnyHttpUrl, PostgresDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,6 +38,10 @@ class Settings(BaseSettings):
 
     # ── Qdrant ────────────────────────────────────────────────────────────────
     qdrant_url: AnyHttpUrl = AnyHttpUrl("http://qdrant:6333")
+
+    # ── Content ───────────────────────────────────────────────────────────────
+    # We resolve the universities directory dynamically in case we run via uvicorn directly
+    universities_dir: Path = Path(__file__).resolve().parents[4] / "universities"
 
     # ── Derived helpers ───────────────────────────────────────────────────────
     @field_validator("environment")
