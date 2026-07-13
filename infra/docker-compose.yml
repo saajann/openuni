@@ -76,7 +76,22 @@ services:
           target: /app/app
           ignore:
             - __pycache__/
+  # ── Local Embedding Model ─────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:11434/api/tags > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   qdrant_data:
   postgres_data:
+  ollama_data:
