@@ -1,0 +1,13 @@
+# Demo University Enrollment FAQ
+
+Q: How do I enroll in classes?
+A: You can enroll in classes through the student portal. The enrollment period typically opens two weeks before the start of the semester. You will need your student ID and password to log in.
+
+Q: What happens if a class is full?
+A: If a class is full, you can add yourself to the waitlist. If a spot opens up, the first person on the waitlist will be automatically enrolled and notified via their university email.
+
+Q: Can I change my major?
+A: Yes, students can change their major by submitting a "Change of Major" form to the registrar's office. It is recommended to speak with an academic advisor before making this decision to understand how it affects your graduation timeline.
+
+Q: When is the deadline to drop a class without a penalty?
+A: The deadline to drop a class without a "W" (withdrawal) on your transcript is the end of the second week of classes. Dropping after this period but before the withdrawal deadline will result in a "W".
