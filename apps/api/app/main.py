@@ -7,7 +7,6 @@ Start locally (outside Docker):
     uvicorn app.main:app --reload --port 8000
 """
 
-
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -28,9 +27,7 @@ def _psycopg_dsn(sqlalchemy_url: str) -> str:
     SQLAlchemy uses ``postgresql+psycopg://…`` as its dialect specifier;
     psycopg3's ``AsyncConnection.connect`` only accepts ``postgresql://…``.
     """
-    return sqlalchemy_url.replace(
-        "postgresql+psycopg", "postgresql", 1
-    )
+    return sqlalchemy_url.replace("postgresql+psycopg", "postgresql", 1)
 
 
 logger = logging.getLogger(__name__)
@@ -120,7 +117,7 @@ def create_app() -> FastAPI:
         tags=["meta"],
         response_model=dict,
     )
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         """Return a simple liveness signal.
 
         Used by Docker Compose health-checks, load balancers, and uptime

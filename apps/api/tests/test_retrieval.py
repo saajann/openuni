@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -12,7 +13,7 @@ from app.rag import retrieval
 
 
 @pytest.fixture
-def temp_universities_dir(tmp_path: Path):
+def temp_universities_dir(tmp_path: Path) -> Iterator[None]:
     settings = get_settings()
     original_dir = settings.universities_dir
     settings.universities_dir = tmp_path
@@ -39,7 +40,7 @@ def temp_universities_dir(tmp_path: Path):
 
 def test_retrieve_chunks_returns_ranked_matches(
     temp_universities_dir: None, monkeypatch: pytest.MonkeyPatch
-):
+) -> None:
     monkeypatch.setattr(retrieval, "_embed_question", lambda **_: [0.1, 0.2, 0.3])
 
     class FakeQdrantClient:
@@ -53,7 +54,7 @@ def test_retrieve_chunks_returns_ranked_matches(
             query_vector: list[float],
             limit: int,
             with_payload: bool,
-        ):
+        ) -> list[SimpleNamespace]:
             assert collection_name == "demo_collection"
             assert query_vector == [0.1, 0.2, 0.3]
             assert limit == 2
@@ -82,7 +83,7 @@ def test_retrieve_chunks_returns_ranked_matches(
 
 def test_retrieve_chunks_returns_empty_for_missing_collection(
     temp_universities_dir: None, monkeypatch: pytest.MonkeyPatch
-):
+) -> None:
     monkeypatch.setattr(retrieval, "_embed_question", lambda **_: [0.1, 0.2, 0.3])
 
     class FakeQdrantClient:
@@ -96,7 +97,7 @@ def test_retrieve_chunks_returns_empty_for_missing_collection(
             query_vector: list[float],
             limit: int,
             with_payload: bool,
-        ):
+        ) -> list[SimpleNamespace]:
             raise UnexpectedResponse(
                 status_code=404,
                 reason_phrase="Not Found",

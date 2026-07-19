@@ -56,7 +56,9 @@ def retrieve_chunks(university_slug: str, question: str, top_k: int = 5) -> list
     )
     qdrant = QdrantClient(url=str(settings.qdrant_url))
     try:
-        points = qdrant.search(
+        # qdrant-client's type stubs don't declare `search` on this overload
+        # of QdrantClient even though it exists and works at runtime.
+        points = qdrant.search(  # type: ignore[attr-defined]
             collection_name=university.qdrant_collection,
             query_vector=embedding,
             limit=top_k,
