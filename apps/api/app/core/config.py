@@ -38,6 +38,10 @@ class Settings(BaseSettings):
 
     # ── Qdrant ────────────────────────────────────────────────────────────────
     qdrant_url: AnyHttpUrl = AnyHttpUrl("http://qdrant:6333")
+    ollama_url: AnyHttpUrl = AnyHttpUrl("http://ollama:11434")
+    # IMPORTANT: must stay aligned with the embedding model used by ingestion
+    # (`packages/ingestion/ingestion/embeddings/ollama.py`).
+    embedding_model: str = "nomic-embed-text"
 
     # ── Content ───────────────────────────────────────────────────────────────
     # We resolve the universities directory dynamically in case we run via uvicorn directly
