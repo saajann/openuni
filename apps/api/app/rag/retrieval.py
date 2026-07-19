@@ -23,10 +23,19 @@ def _embed_question(question: str, ollama_url: str, model: str) -> list[float]:
         timeout=30.0,
     )
     response.raise_for_status()
-    embedding = response.json().get("embedding")
-    if not isinstance(embedding, list):
-        raise ValueError("Embedding response did not contain an 'embedding' vector.")
-    return embedding
+    data = response.json()
+    if not isinstance(data, dict):
+        raise ValueError("Embedding response was not a JSON object.")
+
+    embedding = data.get("embedding")
+    if (
+        not isinstance(embedding, list)
+        or not embedding
+        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in embedding)
+    ):
+        raise ValueError("Embedding response did not contain a numeric 'embedding' vector.")
+
+    return [float(x) for x in embedding]
 
 
 def _source_from_payload(payload: dict[str, Any]) -> str | None:
