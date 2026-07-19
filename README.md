@@ -1,5 +1,7 @@
 # OpenUni
 
+[![CI (api)](https://github.com/saajann/openuni/actions/workflows/ci-api.yml/badge.svg)](https://github.com/saajann/openuni/actions/workflows/ci-api.yml)
+
 > **Open-source AI assistant for university students.**
 
 OpenUni lets students ask plain-language questions and get accurate, cited answers drawn exclusively from official university sources — regulations, degree programmes, deadlines, forms, FAQs, and more.
