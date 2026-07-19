@@ -34,6 +34,7 @@ def temp_universities_dir(tmp_path: Path):
     yield
 
     settings.universities_dir = original_dir
+    universities.load_universities()
 
 
 def test_retrieve_chunks_returns_ranked_matches(
