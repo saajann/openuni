@@ -140,3 +140,40 @@ at the repo root for the full list with descriptions.
 | GET    | `/ready`  | Readiness — 200 only when DB + Qdrant are reachable |
 | GET    | `/docs`   | Swagger UI (development mode only)              |
 | GET    | `/redoc`  | ReDoc (development mode only)                   |
+
+---
+
+## LLM Provider (v0)
+
+**Provider**: [OpenAI Chat Completions API](https://platform.openai.com/docs/guides/chat)  
+**Default model**: `gpt-4o-mini`
+
+### Decision record
+
+| Factor | Detail |
+|---|---|
+| Availability | Widely available API key, no self-hosting required for v0 |
+| Instruction-following | Reliable adherence to the system prompt's grounding and citation rules |
+| JSON mode | Native `response_format: {type: "json_object"}` removes the need to parse fenced code blocks |
+| Cost | `gpt-4o-mini` is cost-efficient for short, grounded Q&A exchanges |
+| Future switch | Provider is isolated to `app/rag/generation.py`; swapping to Anthropic/Gemini only requires updating that file |
+
+### Alternatives considered
+
+- **Anthropic Claude** — excellent instruction-following but requires an additional client library and no native JSON mode in older versions; deferred.
+- **Local Ollama** — already used for embeddings; could unify the stack, but quality of citation following varies significantly by model; deferred.
+- **Streaming** — token-by-token SSE/WebSocket streaming; deferred to a later issue to keep v0 simple.
+
+### Setup
+
+```bash
+# Add to your .env (never commit real keys)
+OPENAI_API_KEY=sk-...
+# Optionally override the model
+OPENAI_MODEL=gpt-4o-mini
+```
+
+The `generate_answer()` function in `app/rag/generation.py` accepts an optional
+`client` parameter for dependency injection during testing — no real API key is
+needed to run the unit-test suite.
+

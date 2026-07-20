@@ -9,7 +9,7 @@ messages if something required is missing.
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator
+from pydantic import AnyHttpUrl, PostgresDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -42,6 +42,14 @@ class Settings(BaseSettings):
     # IMPORTANT: must stay aligned with the embedding model used by ingestion
     # (`packages/ingestion/ingestion/embeddings/ollama.py`).
     embedding_model: str = "nomic-embed-text"
+
+    # ── OpenAI ────────────────────────────────────────────────────────────────
+    # Required at runtime; optional here so the test suite can run without a
+    # live API key (tests inject a mock client directly).
+    openai_api_key: SecretStr = SecretStr("")
+    # Model used for answer generation.  gpt-4o-mini offers a good
+    # quality/cost tradeoff for grounded Q&A with JSON-mode output.
+    openai_model: str = "gpt-4o-mini"
 
     # ── Content ───────────────────────────────────────────────────────────────
     # We resolve the universities directory dynamically in case we run via uvicorn directly
