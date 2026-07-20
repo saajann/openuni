@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict
 
 class UniversityConfig(BaseModel):
     """Configuration schema for a single university."""
-    
+
     slug: str
     name: str
     locale: str
