@@ -43,13 +43,24 @@ class Settings(BaseSettings):
     # (`packages/ingestion/ingestion/embeddings/ollama.py`).
     embedding_model: str = "nomic-embed-text"
 
+    # ── LLM Provider (answer generation) ────────────────────────────────────
+    # Controls which backend is used by generate_answer().
+    #   "openai"  — OpenAI Chat Completions API (requires OPENAI_API_KEY)
+    #   "ollama"  — Local Ollama instance via its OpenAI-compatible /v1 endpoint
+    llm_provider: str = "openai"
+
     # ── OpenAI ────────────────────────────────────────────────────────────────
-    # Required at runtime; optional here so the test suite can run without a
-    # live API key (tests inject a mock client directly).
+    # Required at runtime when llm_provider="openai"; optional here so the test
+    # suite can run without a live API key (tests inject a mock client directly).
     openai_api_key: SecretStr = SecretStr("")
     # Model used for answer generation.  gpt-4o-mini offers a good
     # quality/cost tradeoff for grounded Q&A with JSON-mode output.
     openai_model: str = "gpt-4o-mini"
+
+    # ── Ollama (generation) ───────────────────────────────────────────────────
+    # Only used when llm_provider="ollama".  OLLAMA_URL is shared with the
+    # embedding model (see embedding_model above).
+    ollama_model: str = "llama3.1"
 
     # ── Content ───────────────────────────────────────────────────────────────
     # We resolve the universities directory dynamically in case we run via uvicorn directly
@@ -62,6 +73,17 @@ class Settings(BaseSettings):
         allowed = {"development", "production", "test"}
         if v not in allowed:
             raise ValueError(f"environment must be one of {allowed}, got '{v}'")
+        return v
+
+    @field_validator("llm_provider")
+    @classmethod
+    def validate_llm_provider(cls, v: str) -> str:
+        allowed = {"openai", "ollama"}
+        if v not in allowed:
+            raise ValueError(
+                f"LLM_PROVIDER must be one of {allowed}, got '{v}'. "
+                "Set LLM_PROVIDER=openai or LLM_PROVIDER=ollama in your .env."
+            )
         return v
 
     @property

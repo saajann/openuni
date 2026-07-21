@@ -143,37 +143,74 @@ at the repo root for the full list with descriptions.
 
 ---
 
-## LLM Provider (v0)
+## LLM Provider
 
-**Provider**: [OpenAI Chat Completions API](https://platform.openai.com/docs/guides/chat)  
-**Default model**: `gpt-4o-mini`
+The generation step supports two providers, switchable via `LLM_PROVIDER` in your `.env`.
+No code changes or restarts beyond updating the env file are required.
+
+### Comparison
+
+| Factor | `openai` (default) | `ollama` |
+|---|---|---|
+| **Setup** | API key required (`OPENAI_API_KEY`) | Ollama running locally, model pulled |
+| **Cost** | Pay-per-token (`gpt-4o-mini` is cheap) | Free / self-hosted |
+| **Offline** | ✗ requires internet | ✓ fully local |
+| **JSON mode** | ✓ native, very reliable | ⚠ supported but varies by model |
+| **Instruction-following** | Excellent | Good; depends on model size |
+| **Recommended for** | Production, CI/CD, reliable structured output | Local dev without an API key |
+
+> **Note on JSON mode with Ollama**: Ollama's `/v1` endpoint accepts
+> `response_format: {type: "json_object"}`, but not all models honour it
+> consistently. The existing `_parse_llm_response` fallback in
+> `generation.py` will return the raw text if the response is not valid
+> JSON, so the app stays functional even with less reliable models.
+
+---
+
+### Using OpenAI (default)
+
+```bash
+# In your .env
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-...       # required
+# OPENAI_MODEL=gpt-4o-mini  # optional override
+```
+
+### Using Ollama (local / offline)
+
+```bash
+# 1. Make sure Ollama is running and the model is pulled
+ollama pull llama3.1
+
+# 2. In your .env
+LLM_PROVIDER=ollama
+OLLAMA_URL=http://localhost:11434   # or http://ollama:11434 inside Docker
+# OLLAMA_MODEL=llama3.1             # optional override
+```
+
+> **Tip**: If you already run the Docker Compose stack, the `ollama` service
+> is already included in `infra/docker-compose.yml` and `OLLAMA_URL` defaults
+> to `http://ollama:11434` — no extra infrastructure needed.
+
+---
 
 ### Decision record
 
 | Factor | Detail |
 |---|---|
-| Availability | Widely available API key, no self-hosting required for v0 |
-| Instruction-following | Reliable adherence to the system prompt's grounding and citation rules |
-| JSON mode | Native `response_format: {type: "json_object"}` removes the need to parse fenced code blocks |
-| Cost | `gpt-4o-mini` is cost-efficient for short, grounded Q&A exchanges |
-| Future switch | Provider is isolated to `app/rag/generation.py`; swapping to Anthropic/Gemini only requires updating that file |
+| Default provider | OpenAI — widely available key, excellent JSON-mode, good quality/cost tradeoff |
+| Provider isolation | All provider logic lives in `app/rag/generation.py`; callers (`app/routers/chat.py`) are unaffected |
+| Shared client | Both providers use `openai.OpenAI`; Ollama is reached via its OpenAI-compatible `/v1` endpoint |
+| Future providers | Adding Anthropic/Gemini follows the same pattern: add a branch in `_resolve_client_and_model()` |
 
 ### Alternatives considered
 
-- **Anthropic Claude** — excellent instruction-following but requires an additional client library and no native JSON mode in older versions; deferred.
-- **Local Ollama** — already used for embeddings; could unify the stack, but quality of citation following varies significantly by model; deferred.
 - **Streaming** — token-by-token SSE/WebSocket streaming; deferred to a later issue to keep v0 simple.
+- **Auto-detect from env vars** — e.g. use Ollama if `OPENAI_API_KEY` is missing; rejected in favour
+  of an explicit `LLM_PROVIDER` flag, which is easier to reason about and debug.
 
-### Setup
-
-```bash
-# Add to your .env (never commit real keys)
-OPENAI_API_KEY=sk-...
-# Optionally override the model
-OPENAI_MODEL=gpt-4o-mini
-```
+### Setup summary
 
 The `generate_answer()` function in `app/rag/generation.py` accepts an optional
-`client` parameter for dependency injection during testing — no real API key is
-needed to run the unit-test suite.
-
+`client` parameter for dependency injection during testing — no real API key or
+running Ollama instance is needed to run the unit-test suite.
