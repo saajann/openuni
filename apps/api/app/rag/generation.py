@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 
 from openai import OpenAI
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.rag.retrieval import RetrievedChunk
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ def _parse_llm_response(raw: str) -> GeneratedAnswer:
 
 
 def _resolve_client_and_model(
-    settings,
+    settings: Settings,
 ) -> tuple[OpenAI, str]:
     """Return ``(client, model)`` for the configured LLM provider.
 

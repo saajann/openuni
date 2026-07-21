@@ -40,7 +40,7 @@ def _make_chunk(text: str, source: str, score: float = 0.9) -> RetrievedChunk:
     return RetrievedChunk(chunk_text=text, source=source, score=score)
 
 
-def _fake_openai_response(content: str) -> MagicMock:
+def _fake_openai_response(content: str) -> SimpleNamespace:
     """Build a minimal mock that mirrors openai.ChatCompletion structure."""
     message = SimpleNamespace(content=content)
     choice = SimpleNamespace(message=message)
