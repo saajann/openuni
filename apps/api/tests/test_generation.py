@@ -28,6 +28,7 @@ from app.rag.generation import (
     _SYSTEM_PROMPT,
     _build_user_message,
     _parse_llm_response,
+    _resolve_client_and_model,
     generate_answer,
 )
 from app.rag.retrieval import RetrievedChunk
@@ -217,3 +218,82 @@ def test_generate_answer_uses_settings_model_by_default() -> None:
 
     call_kwargs = mock_client.chat.completions.create.call_args.kwargs
     assert call_kwargs["model"] == "gpt-4o-mini"
+
+
+# ── _resolve_client_and_model — provider resolution ───────────────────────────
+
+
+def test_resolve_client_openai() -> None:
+    """openai provider returns a vanilla OpenAI client and the openai_model."""
+    settings = MagicMock()
+    settings.llm_provider = "openai"
+    settings.openai_api_key.get_secret_value.return_value = "sk-test"
+    settings.openai_model = "gpt-4o-mini"
+
+    with patch("app.rag.generation.OpenAI") as MockOpenAI:
+        MockOpenAI.return_value = MagicMock()
+        client, model = _resolve_client_and_model(settings)
+
+    MockOpenAI.assert_called_once_with(api_key="sk-test")
+    assert model == "gpt-4o-mini"
+
+
+def test_resolve_client_ollama() -> None:
+    """ollama provider returns an OpenAI client pointed at Ollama's /v1 endpoint."""
+    settings = MagicMock()
+    settings.llm_provider = "ollama"
+    settings.ollama_url = "http://ollama:11434"
+    settings.ollama_model = "llama3.1"
+
+    with patch("app.rag.generation.OpenAI") as MockOpenAI:
+        MockOpenAI.return_value = MagicMock()
+        client, model = _resolve_client_and_model(settings)
+
+    call_kwargs = MockOpenAI.call_args.kwargs
+    assert call_kwargs["base_url"].endswith("/v1")
+    assert "ollama:11434" in call_kwargs["base_url"]
+    assert call_kwargs["api_key"] == "ollama"
+    assert model == "llama3.1"
+
+
+def test_resolve_client_invalid_provider_raises() -> None:
+    """An unrecognised llm_provider raises ValueError with a helpful message."""
+    settings = MagicMock()
+    settings.llm_provider = "anthropic"
+
+    with pytest.raises(ValueError, match="Unknown LLM_PROVIDER 'anthropic'"):
+        _resolve_client_and_model(settings)
+
+
+def test_generate_answer_ollama_provider_routes_to_ollama_client() -> None:
+    """generate_answer() with llm_provider='ollama' uses an Ollama-backed client."""
+    chunks = [_make_chunk("Term starts 1 September.", "calendar.pdf")]
+    llm_payload: dict[str, Any] = {
+        "answer": "Term starts 1 September [1].",
+        "sources": [{"text_snippet": "Term starts 1 September.", "source": "calendar.pdf"}],
+    }
+
+    mock_client_instance = MagicMock()
+    mock_client_instance.chat.completions.create.return_value = _fake_openai_response(
+        json.dumps(llm_payload)
+    )
+
+    with patch("app.rag.generation.get_settings") as mock_settings_fn, \
+         patch("app.rag.generation.OpenAI", return_value=mock_client_instance) as MockOpenAI:
+
+        settings = MagicMock()
+        settings.llm_provider = "ollama"
+        settings.ollama_url = "http://ollama:11434"
+        settings.ollama_model = "llama3.1"
+        mock_settings_fn.return_value = settings
+
+        result = generate_answer("When does term start?", chunks=chunks)
+
+    # Client must have been constructed for Ollama's /v1 endpoint
+    call_kwargs = MockOpenAI.call_args.kwargs
+    assert call_kwargs["base_url"].endswith("/v1")
+    assert call_kwargs["api_key"] == "ollama"
+
+    # Parsed result should be correct
+    assert "1 September" in result.answer
+    assert result.sources[0].source == "calendar.pdf"

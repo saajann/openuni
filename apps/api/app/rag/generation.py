@@ -7,13 +7,19 @@ Given a question and a list of retrieved chunks, this module:
   1. Short-circuits with a fixed response when no context is available.
   2. Builds a structured prompt that instructs the model to answer *only*
      from the supplied context and to cite the source of each claim.
-  3. Calls the OpenAI Chat Completions API and parses the response into a
-     structured ``GeneratedAnswer``.
+  3. Calls the configured LLM and parses the response into a structured
+     ``GeneratedAnswer``.
 
-LLM provider (v0): **OpenAI** (``gpt-4o-mini`` by default).
-Rationale: widely available, excellent instruction-following, JSON-mode
-support makes structured output straightforward.  See README.md §LLM
-Provider for the full decision record.
+Supported LLM providers (controlled by ``settings.llm_provider``):
+  * **openai** (default) — OpenAI Chat Completions API (``gpt-4o-mini``).
+    Requires ``OPENAI_API_KEY`` in the environment.
+  * **ollama** — Local Ollama instance via its OpenAI-compatible ``/v1``
+    endpoint.  Requires a running Ollama server (``OLLAMA_URL``) and the
+    desired model pulled (``OLLAMA_MODEL``, default ``llama3.1``).
+    No API key needed; the same ``openai.OpenAI`` client is reused,
+    pointed at ``<OLLAMA_URL>/v1``.
+
+See README.md §LLM Provider for the full decision record and trade-offs.
 """
 
 from __future__ import annotations
@@ -127,6 +133,47 @@ def _parse_llm_response(raw: str) -> GeneratedAnswer:
     return GeneratedAnswer(answer=answer, sources=sources)
 
 
+# ── Provider resolution ───────────────────────────────────────────────────────
+
+
+def _resolve_client_and_model(
+    settings,
+) -> tuple[OpenAI, str]:
+    """Return ``(client, model)`` for the configured LLM provider.
+
+    Both values are derived entirely from *settings* so the caller
+    (``generate_answer``) stays provider-agnostic.
+
+    Raises
+    ------
+    ValueError
+        If ``settings.llm_provider`` is not ``"openai"`` or ``"ollama"``.
+        (The config validator should catch this at startup; the guard here
+        is a defensive fallback.)
+    """
+    provider = settings.llm_provider
+
+    if provider == "openai":
+        return (
+            OpenAI(api_key=settings.openai_api_key.get_secret_value()),
+            settings.openai_model,
+        )
+
+    if provider == "ollama":
+        # Ollama exposes an OpenAI-compatible endpoint at <base_url>/v1.
+        # We reuse the openai SDK — no extra library needed.
+        ollama_base = str(settings.ollama_url).rstrip("/")
+        return (
+            OpenAI(base_url=f"{ollama_base}/v1", api_key="ollama"),
+            settings.ollama_model,
+        )
+
+    raise ValueError(
+        f"Unknown LLM_PROVIDER '{provider}'. "
+        "Valid values are 'openai' and 'ollama'."
+    )
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
@@ -148,11 +195,14 @@ def generate_answer(
         empty the function returns a fixed "no information" response without
         making any LLM call.
     model:
-        OpenAI model name to use.  Defaults to ``Settings.openai_model``.
+        Model name override.  When omitted, the model is resolved from
+        ``settings.llm_provider`` (OpenAI: ``settings.openai_model``,
+        Ollama: ``settings.ollama_model``).
     client:
         An ``openai.OpenAI`` client instance.  Injected here primarily to
         allow deterministic unit testing without network calls; if omitted
-        a default client is created from the application settings.
+        the client is constructed by ``_resolve_client_and_model()`` based
+        on the active provider.
 
     Returns
     -------
@@ -163,13 +213,21 @@ def generate_answer(
         return GeneratedAnswer(answer=_NO_INFORMATION_ANSWER, sources=[])
 
     settings = get_settings()
-    resolved_model = model or settings.openai_model
-    resolved_client = client or OpenAI(api_key=settings.openai_api_key.get_secret_value())
+
+    if client is not None:
+        # Explicit injection (e.g. tests) — respect caller's model choice too.
+        resolved_client = client
+        resolved_model = model or settings.openai_model
+    else:
+        resolved_client, resolved_model = _resolve_client_and_model(settings)
+        if model is not None:
+            resolved_model = model  # explicit model arg wins over provider default
 
     user_message = _build_user_message(question, chunks)
 
     logger.debug(
-        "Calling OpenAI model=%s with %d context chunk(s).",
+        "Calling LLM provider=%s model=%s with %d context chunk(s).",
+        settings.llm_provider,
         resolved_model,
         len(chunks),
     )
