@@ -23,16 +23,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.rag.generation import (
-    GeneratedAnswer,
     _NO_INFORMATION_ANSWER,
     _SYSTEM_PROMPT,
+    GeneratedAnswer,
     _build_user_message,
     _parse_llm_response,
     _resolve_client_and_model,
     generate_answer,
 )
 from app.rag.retrieval import RetrievedChunk
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
