@@ -80,9 +80,7 @@ def test_build_user_message_unknown_source_when_none() -> None:
 def test_parse_llm_response_valid_json() -> None:
     payload: dict[str, Any] = {
         "answer": "Deadlines are in September [1].",
-        "sources": [
-            {"text_snippet": "Deadlines are in September.", "source": "handbook.pdf"}
-        ],
+        "sources": [{"text_snippet": "Deadlines are in September.", "source": "handbook.pdf"}],
     }
     result = _parse_llm_response(json.dumps(payload))
 
@@ -277,9 +275,10 @@ def test_generate_answer_ollama_provider_routes_to_ollama_client() -> None:
         json.dumps(llm_payload)
     )
 
-    with patch("app.rag.generation.get_settings") as mock_settings_fn, \
-         patch("app.rag.generation.OpenAI", return_value=mock_client_instance) as MockOpenAI:
-
+    with (
+        patch("app.rag.generation.get_settings") as mock_settings_fn,
+        patch("app.rag.generation.OpenAI", return_value=mock_client_instance) as MockOpenAI,
+    ):
         settings = MagicMock()
         settings.llm_provider = "ollama"
         settings.ollama_url = "http://ollama:11434"

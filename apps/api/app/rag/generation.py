@@ -168,10 +168,7 @@ def _resolve_client_and_model(
             settings.ollama_model,
         )
 
-    raise ValueError(
-        f"Unknown LLM_PROVIDER '{provider}'. "
-        "Valid values are 'openai' and 'ollama'."
-    )
+    raise ValueError(f"Unknown LLM_PROVIDER '{provider}'. Valid values are 'openai' and 'ollama'.")
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
