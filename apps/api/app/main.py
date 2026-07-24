@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 from app.core import universities
 from app.core.config import Settings, get_settings
+from app.routers import chat as chat_router
 
 
 def _psycopg_dsn(sqlalchemy_url: str) -> str:
@@ -89,6 +90,9 @@ def create_app() -> FastAPI:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal server error"},
         )
+
+    # ── Routers ───────────────────────────────────────────────────────────────
+    application.include_router(chat_router.router)
 
     # ── Routes ────────────────────────────────────────────────────────────────
     class UniversityPublic(BaseModel):
