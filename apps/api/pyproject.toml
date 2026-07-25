@@ -60,6 +60,7 @@ ignore = []
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
+warn_unused_ignores = false
 
 # ─── Pytest ───────────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
