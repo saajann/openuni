@@ -1,12 +1,8 @@
 import httpx
-from typing import List
-import time
 
 
 class OllamaEmbedder:
-    def __init__(
-        self, base_url: str = "http://localhost:11434", model: str = "nomic-embed-text"
-    ):
+    def __init__(self, base_url: str = "http://localhost:11434", model: str = "nomic-embed-text"):
         self.base_url = base_url.rstrip("/")
         self.model = model
 
@@ -37,7 +33,7 @@ class OllamaEmbedder:
             print(f"Failed to connect to Ollama at {self.base_url}: {e}")
             raise
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """Embeds a list of texts using the configured Ollama model."""
         embeddings = []
         with httpx.Client(timeout=60.0) as client:

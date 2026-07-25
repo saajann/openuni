@@ -1,0 +1,45 @@
+name: CI (ingestion)
+
+on:
+  pull_request:
+    paths:
+      - "packages/ingestion/**"
+      - ".github/workflows/ci-ingestion.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/ingestion/**"
+      - ".github/workflows/ci-ingestion.yml"
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/ingestion
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: packages/ingestion/pyproject.toml
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint (ruff check)
+        run: ruff check .
+
+      - name: Format check (ruff format)
+        run: ruff format --check .
+
+      - name: Test (pytest)
+        # `packages/ingestion` has no test files yet (unit tests for
+        # crawlers/chunkers/embedders are tracked separately) -- treat
+        # pytest's "no tests collected" exit code (5) as passing so this
+        # doesn't fail on every PR until those land. Any other failure
+        # (bad exit code) still fails the job normally. Safe to drop the
+        # `|| ...` once real tests exist: pytest will stop returning 5.
+        run: pytest || test $? -eq 5

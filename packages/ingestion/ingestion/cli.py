@@ -1,10 +1,12 @@
 import argparse
 import os
-import yaml
 from datetime import datetime
-from ingestion.loaders.local import load_document
+
+import yaml
+
 from ingestion.chunking.text_splitter import chunk_text
 from ingestion.embeddings.ollama import OllamaEmbedder
+from ingestion.loaders.local import load_document
 from ingestion.vector_store.qdrant import QdrantStore
 
 
@@ -26,7 +28,7 @@ def main():
         print(f"Error: Config file not found at {config_path}")
         return
 
-    with open(config_path, "r", encoding="utf-8") as f:
+    with open(config_path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     collection_name = config.get("qdrant_collection", f"{slug}_collection")

@@ -1,12 +1,12 @@
 import re
-from typing import List
 
 
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
     """
     Splits text into chunks of roughly `chunk_size` words,
     with an overlap of `overlap` words.
-    For v0, we use a simple word-based splitting approach which is fast and requires no extra dependencies.
+    For v0, we use a simple word-based splitting approach which is fast and
+    requires no extra dependencies.
     """
     words = re.findall(r"\S+", text)
     chunks = []

@@ -19,4 +19,14 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "ruff>=0.4.0",
 ]
+
+# ─── Ruff (linter + formatter) ────────────────────────────────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []

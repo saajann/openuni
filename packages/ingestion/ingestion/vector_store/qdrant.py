@@ -1,5 +1,6 @@
 import uuid
-from typing import List, Dict, Any
+from typing import Any
+
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
@@ -49,14 +50,14 @@ class QdrantStore:
             ),
         )
 
-    def upsert_points(self, vectors: List[List[float]], payloads: List[Dict[str, Any]]):
+    def upsert_points(self, vectors: list[list[float]], payloads: list[dict[str, Any]]):
         """Upserts a batch of vectors and their payloads into Qdrant."""
         if not vectors or len(vectors) != len(payloads):
             return
 
         points = [
             models.PointStruct(id=str(uuid.uuid4()), vector=vector, payload=payload)
-            for vector, payload in zip(vectors, payloads)
+            for vector, payload in zip(vectors, payloads, strict=True)
         ]
 
         self.client.upsert(collection_name=self.collection_name, points=points)
