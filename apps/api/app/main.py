@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 import httpx
 import psycopg
 from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -82,14 +83,34 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    # ── CORS ──────────────────────────────────────────────────────────────────
+    # Allows a browser-based frontend (apps/web) running on a different origin
+    # to call this API. See Settings.cors_origins / CORS_ORIGINS in .env.
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     # ── Global exception handler ──────────────────────────────────────────────
     @application.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.exception("Unhandled error on %s %s", request.method, request.url)
-        return JSONResponse(
+        response = JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal server error"},
         )
+        # CORSMiddleware does not reliably add CORS headers to responses built
+        # by a top-level Exception handler (a documented Starlette gotcha), so
+        # a browser calling this API would see the request as CORS-blocked
+        # instead of getting the actual 500. Set the header explicitly here.
+        origin = request.headers.get("origin")
+        if origin in settings.cors_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
 
     # ── Routers ───────────────────────────────────────────────────────────────
     application.include_router(chat_router.router)

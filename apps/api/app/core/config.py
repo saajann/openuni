@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_port: int = 8000
 
+    # ── CORS ──────────────────────────────────────────────────────────────────
+    # Origins allowed to call this API from a browser (e.g. apps/web's dev
+    # server). Comma-separated in the env var, e.g.
+    # CORS_ORIGINS=http://localhost:3000,https://openuni.example.com
+    cors_origins: list[str] = ["http://localhost:3000"]
+
     # ── PostgreSQL ────────────────────────────────────────────────────────────
     database_url: PostgresDsn = PostgresDsn(
         "postgresql+psycopg://openuni:openuni@postgres:5432/openuni"
@@ -67,6 +73,13 @@ class Settings(BaseSettings):
     universities_dir: Path = Path(__file__).resolve().parents[4] / "universities"
 
     # ── Derived helpers ───────────────────────────────────────────────────────
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def split_cors_origins(cls, v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, v: str) -> str:
