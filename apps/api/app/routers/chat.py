@@ -39,11 +39,11 @@ async def chat(body: ChatRequest) -> ChatResponse:
     # ── Validate university ───────────────────────────────────────────────────
     try:
         get_university(body.university_slug)
-    except KeyError:
+    except KeyError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"University '{body.university_slug}' not found.",
-        )
+        ) from e
 
     # ── Validate question ─────────────────────────────────────────────────────
     if not body.question.strip():
@@ -68,7 +68,6 @@ async def chat(body: ChatRequest) -> ChatResponse:
     return ChatResponse(
         answer=generated.answer,
         sources=[
-            SourceItem(text_snippet=s.text_snippet, source=s.source)
-            for s in generated.sources
+            SourceItem(text_snippet=s.text_snippet, source=s.source) for s in generated.sources
         ],
     )

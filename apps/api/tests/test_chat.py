@@ -10,10 +10,9 @@ the real FastAPI routing, validation, and exception handling.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterator
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import yaml
@@ -22,10 +21,8 @@ from fastapi.testclient import TestClient
 from app.core import universities
 from app.core.config import get_settings
 from app.main import app
-from app.rag.generation import GeneratedAnswer
-from app.rag.generation import CitedSource
+from app.rag.generation import CitedSource, GeneratedAnswer
 from app.rag.retrieval import RetrievedChunk
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -107,9 +104,7 @@ def test_chat_valid_question_returns_grounded_answer(
     assert data["sources"][0]["source"] == "fees.pdf"
     assert data["sources"][0]["text_snippet"] == "Tuition is €3 000 per year."
 
-    mock_retrieve.assert_called_once_with(
-        university_slug="demo", question="How much is tuition?"
-    )
+    mock_retrieve.assert_called_once_with(university_slug="demo", question="How much is tuition?")
     mock_generate.assert_called_once()
 
 
