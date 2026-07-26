@@ -24,7 +24,11 @@ apps/web/
 └── README.md            # ← you are here
 ```
 
-## Getting started (coming soon)
+## Getting started
+
+Ensure the backend API is running locally (usually on port 8000). The frontend expects the backend URL to be defined in `.env`. The project root `.env.example` already includes `NEXT_PUBLIC_API_URL`.
+
+To run the frontend:
 
 ```bash
 cd apps/web
