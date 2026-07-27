@@ -13,6 +13,16 @@ from pydantic import AnyHttpUrl, PostgresDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _get_default_universities_dir() -> Path:
+    """Safely resolve the universities directory.
+    Falls back to /app/universities if run within a shallow directory structure like Docker.
+    """
+    try:
+        return Path(__file__).resolve().parents[4] / "universities"
+    except IndexError:
+        return Path("/app/universities")
+
+
 class Settings(BaseSettings):
     """Application-wide configuration.
 
@@ -64,7 +74,7 @@ class Settings(BaseSettings):
 
     # ── Content ───────────────────────────────────────────────────────────────
     # We resolve the universities directory dynamically in case we run via uvicorn directly
-    universities_dir: Path = Path(__file__).resolve().parents[4] / "universities"
+    universities_dir: Path = _get_default_universities_dir()
 
     # ── Derived helpers ───────────────────────────────────────────────────────
     @field_validator("environment")
