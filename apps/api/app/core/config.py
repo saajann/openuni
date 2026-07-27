@@ -37,9 +37,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # ── General ───────────────────────────────────────────────────────────────
+    # ── General ───────────────────────────────────────────────────────
     environment: str = "development"
     api_port: int = 8000
+
+    # ── CORS ──────────────────────────────────────────────────────────
+    # Origins permitted to make cross-origin requests to the API.
+    # The web frontend (http://localhost:3000) needs this for browser
+    # preflight (OPTIONS) calls to succeed.  Override in .env for
+    # production deployments.
+    cors_origins: list[str] = ["http://localhost:3000"]
 
     # ── PostgreSQL ────────────────────────────────────────────────────────────
     database_url: PostgresDsn = PostgresDsn(

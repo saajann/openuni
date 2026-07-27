@@ -186,3 +186,21 @@ def test_chat_missing_question_returns_422(client: TestClient) -> None:
     """Omitting question entirely yields 422 (Pydantic validation)."""
     response = client.post("/chat", json={"university_slug": "demo"})
     assert response.status_code == 422
+
+
+# ── OPTIONS /chat — CORS preflight ─────────────────────────────────────
+
+
+def test_options_chat_preflight_is_allowed(client: TestClient) -> None:
+    """The OPTIONS /chat preflight must return 200 so browsers can
+    send the actual POST /chat request (fixes #31)."""
+    response = client.options(
+        "/chat",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"

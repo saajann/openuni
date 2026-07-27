@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 import httpx
 import psycopg
 from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -80,6 +81,15 @@ def create_app() -> FastAPI:
         docs_url="/docs" if settings.is_development else None,
         redoc_url="/redoc" if settings.is_development else None,
         lifespan=lifespan,
+    )
+
+    # ── CORS ──────────────────────────────────────────────────────
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # ── Global exception handler ──────────────────────────────────────────────
