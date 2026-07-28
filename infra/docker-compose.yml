@@ -62,6 +62,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://openuni:openuni@postgres:5432/openuni}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      UNIVERSITIES_DIR: ${UNIVERSITIES_DIR:-/app/universities}
+    volumes:
+      - ../universities:/app/universities:ro
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -76,6 +79,9 @@ services:
           target: /app/app
           ignore:
             - __pycache__/
+        - action: sync
+          path: ../universities
+          target: /app/universities
   # ── Local Embedding Model ─────────────────────────────────────────────────────
   ollama:
     image: ollama/ollama:latest

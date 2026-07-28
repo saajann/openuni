@@ -86,6 +86,7 @@ See [`.env.example`](../.env.example) for the full reference.
 | `QDRANT_URL`      | `http://qdrant:6333` | Qdrant base URL for the API |
 | `API_PORT`        | `8000`               | Host port for the API     |
 | `ENVIRONMENT`     | `development`        | `development` or `production` |
+| `UNIVERSITIES_DIR` | `/app/universities` | Absolute path inside the container where university config folders are read from |
 
 ---
 
@@ -97,3 +98,60 @@ Named Docker volumes are used so data survives container restarts:
 - `postgres_data` → `/var/lib/postgresql/data` inside the Postgres container
 
 Run `docker compose down -v` to delete them and start fresh.
+
+---
+
+## University configs
+
+University configuration files live in the **repo-root `universities/`** directory and are
+bind-mounted into the API container at `/app/universities` (read-only):
+
+```yaml
+# infra/docker-compose.yml (api service)
+volumes:
+  - ../universities:/app/universities:ro
+environment:
+  UNIVERSITIES_DIR: /app/universities
+```
+
+The API reads every sub-directory of `UNIVERSITIES_DIR` as a separate university on
+startup (and on restart).
+
+### Adding a new university
+
+1. Create a sub-directory under `universities/` in the repo root:
+
+   ```
+   universities/
+   └── my-uni/
+       └── config.yaml
+   ```
+
+2. **No image rebuild is needed.** Because the directory is a bind-mount, the new
+   folder is visible inside the container immediately.
+
+3. Restart (not rebuild) the API container to pick up the change:
+
+   ```bash
+   docker compose -f infra/docker-compose.yml restart api
+   ```
+
+   Or, if you are running with `docker compose watch`, edits to any file inside
+   `universities/` are synced into the container automatically:
+
+   ```bash
+   docker compose -f infra/docker-compose.yml watch
+   ```
+
+### Verifying universities are loaded
+
+```bash
+curl http://localhost:8000/universities
+# → [{"id": "demo", ...}, ...]
+```
+
+If the response is an empty list, check the API logs:
+
+```bash
+docker compose -f infra/docker-compose.yml logs api | grep -i universit
+```
