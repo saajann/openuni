@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
 export interface SourceItem {
   text_snippet: string;
   source: string;
@@ -11,13 +9,14 @@ export interface ChatResponse {
 }
 
 export async function sendChatMessage(
-  universitySlug: string,
+  university: string,
   question: string
 ): Promise<ChatResponse> {
-  const res = await fetch(`${API_URL}/chat`, {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const res = await fetch(`${baseUrl}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ university_slug: universitySlug, question }),
+    body: JSON.stringify({ university_slug: university, question }),
   });
 
   if (!res.ok) {
