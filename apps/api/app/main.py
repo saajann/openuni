@@ -177,6 +177,16 @@ def create_app() -> FastAPI:
             checks["qdrant"] = f"error: {exc}"
             all_ok = False
 
+        # Ollama (required for retrieval embeddings regardless of LLM provider)
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{settings_obj.ollama_url}/api/tags")
+                resp.raise_for_status()
+            checks["ollama"] = "ok"
+        except Exception as exc:
+            checks["ollama"] = f"error: {exc}"
+            all_ok = False
+
         http_status = status.HTTP_200_OK if all_ok else status.HTTP_503_SERVICE_UNAVAILABLE
         return JSONResponse(
             status_code=http_status,
