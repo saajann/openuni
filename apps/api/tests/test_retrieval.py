@@ -47,28 +47,36 @@ def test_retrieve_chunks_returns_ranked_matches(
         def __init__(self, *, url: str):
             self.url = url
 
-        def search(
+        def query_points(
             self,
             *,
             collection_name: str,
-            query_vector: list[float],
+            query: list[float],
             limit: int,
             with_payload: bool,
-        ) -> list[SimpleNamespace]:
+        ) -> SimpleNamespace:
             assert collection_name == "demo_collection"
-            assert query_vector == [0.1, 0.2, 0.3]
+            assert query == [0.1, 0.2, 0.3]
             assert limit == 2
             assert with_payload is True
-            return [
-                SimpleNamespace(
-                    payload={"chunk_text": "Deadlines are in September.", "source": "handbook.pdf"},
-                    score=0.91,
-                ),
-                SimpleNamespace(
-                    payload={"chunk_text": "Tuition info.", "source_url_or_filename": "fees.md"},
-                    score=0.74,
-                ),
-            ]
+            return SimpleNamespace(
+                points=[
+                    SimpleNamespace(
+                        payload={
+                            "chunk_text": "Deadlines are in September.",
+                            "source": "handbook.pdf",
+                        },
+                        score=0.91,
+                    ),
+                    SimpleNamespace(
+                        payload={
+                            "chunk_text": "Tuition info.",
+                            "source_url_or_filename": "fees.md",
+                        },
+                        score=0.74,
+                    ),
+                ]
+            )
 
     monkeypatch.setattr(retrieval, "QdrantClient", FakeQdrantClient)
 
@@ -90,14 +98,14 @@ def test_retrieve_chunks_returns_empty_for_missing_collection(
         def __init__(self, *, url: str):
             self.url = url
 
-        def search(
+        def query_points(
             self,
             *,
             collection_name: str,
-            query_vector: list[float],
+            query: list[float],
             limit: int,
             with_payload: bool,
-        ) -> list[SimpleNamespace]:
+        ) -> SimpleNamespace:
             raise UnexpectedResponse(
                 status_code=404,
                 reason_phrase="Not Found",

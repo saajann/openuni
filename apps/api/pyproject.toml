@@ -19,8 +19,10 @@ dependencies = [
     "pydantic-settings>=2.3.0",
     "pyyaml>=6.0.0",
 
-    # Vector store client
-    "qdrant-client>=1.9.0",
+    # Vector store client — kept within one minor version of the pinned
+    # qdrant/qdrant server image in infra/docker-compose.yml (v1.15.5) to
+    # avoid client/server API drift.
+    "qdrant-client>=1.15.0,<1.17.0",
 
     # Relational DB — psycopg v3 (sync + async) + SQLAlchemy ORM
     "psycopg[binary]>=3.1.0",

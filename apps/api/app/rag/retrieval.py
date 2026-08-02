@@ -56,11 +56,9 @@ def retrieve_chunks(university_slug: str, question: str, top_k: int = 5) -> list
     )
     qdrant = QdrantClient(url=str(settings.qdrant_url))
     try:
-        # qdrant-client's type stubs don't declare `search` on this overload
-        # of QdrantClient even though it exists and works at runtime.
-        points = qdrant.search(  # type: ignore[attr-defined]
+        result = qdrant.query_points(
             collection_name=university.qdrant_collection,
-            query_vector=embedding,
+            query=embedding,
             limit=top_k,
             with_payload=True,
         )
@@ -68,6 +66,7 @@ def retrieve_chunks(university_slug: str, question: str, top_k: int = 5) -> list
         if exc.status_code == 404:
             return []
         raise
+    points = result.points
 
     chunks: list[RetrievedChunk] = []
     for point in points:
