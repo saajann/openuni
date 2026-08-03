@@ -26,3 +26,12 @@ export async function sendChatMessage(
 
   return res.json();
 }
+
+export async function getUniversities(): Promise<{ slug: string; name: string }[]> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const res = await fetch(`${baseUrl}/universities`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch universities: ${res.status}`);
+  }
+  return res.json();
+}
