@@ -36,10 +36,4 @@ jobs:
         run: ruff format --check .
 
       - name: Test (pytest)
-        # `packages/ingestion` has no test files yet (unit tests for
-        # crawlers/chunkers/embedders are tracked separately) -- treat
-        # pytest's "no tests collected" exit code (5) as passing so this
-        # doesn't fail on every PR until those land. Any other failure
-        # (bad exit code) still fails the job normally. Safe to drop the
-        # `|| ...` once real tests exist: pytest will stop returning 5.
-        run: pytest || test $? -eq 5
+        run: pytest
