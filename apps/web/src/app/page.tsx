@@ -1,14 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { sendChatMessage, ChatResponse } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { sendChatMessage, ChatResponse, getUniversities } from "@/lib/api";
 
 export default function Home() {
+  const [universities, setUniversities] = useState<{ slug: string; name: string }[]>([]);
   const [university, setUniversity] = useState("demo");
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<ChatResponse | null>(null);
+
+  // Load universities on component mount
+  useEffect(() => {
+    async function loadUniversities() {
+      try {
+        const data = await getUniversities();
+        setUniversities(data);
+        // Set first university as default if available
+        if (data.length > 0) {
+          setUniversity(data[0].slug);
+        }
+      } catch (err) {
+        console.error("Failed to load universities:", err);
+        // Fallback to demo
+        setUniversities([{ slug: "demo", name: "Demo University" }]);
+      }
+    }
+    loadUniversities();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +65,11 @@ export default function Home() {
             onChange={(e) => setUniversity(e.target.value)}
             disabled={loading}
           >
-            <option value="demo">Demo University</option>
-            {/* Additional universities can be loaded here in the future */}
+            {universities.map((uni) => (
+              <option key={uni.slug} value={uni.slug}>
+                {uni.name}
+              </option>
+            ))}
           </select>
         </div>
 
