@@ -57,7 +57,7 @@ class CalendarEntry(BaseModel):
     title: str = Field(..., description="Human-friendly title for the item.")
     date: datetime.date = Field(..., description="Primary date (or start date) for the item.")
     end_date: datetime.date | None = Field(
-      None, description="Optional inclusive end date for a date range."
+        None, description="Optional inclusive end date for a date range."
     )
     description: str | None = Field(None, description="Optional human-readable text.")
     source_url: str | None = Field(None, description="Optional authoritative source URL.")
