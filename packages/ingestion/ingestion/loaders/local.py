@@ -1,6 +1,9 @@
 import os
 
-import fitz  # PyMuPDF
+try:
+    import fitz  # PyMuPDF
+except ModuleNotFoundError:  # pragma: no cover - exercised when PyMuPDF is absent
+    fitz = None
 
 
 def load_txt(filepath: str) -> str:
@@ -9,6 +12,9 @@ def load_txt(filepath: str) -> str:
 
 
 def load_pdf(filepath: str) -> str:
+    if fitz is None:
+        raise ModuleNotFoundError("No module named 'fitz'. Install PyMuPDF to load PDF files.")
+
     doc = fitz.open(filepath)
     text = ""
     for page in doc:
