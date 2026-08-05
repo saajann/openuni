@@ -34,7 +34,7 @@ config-style models (see `app.models.university.UniversityConfig`).
 from __future__ import annotations
 
 import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -56,17 +56,17 @@ class CalendarEntry(BaseModel):
     )
     title: str = Field(..., description="Human-friendly title for the item.")
     date: datetime.date = Field(..., description="Primary date (or start date) for the item.")
-    end_date: Optional[datetime.date] = Field(
+    end_date: datetime.date | None = Field(
       None, description="Optional inclusive end date for a date range."
     )
-    description: Optional[str] = Field(None, description="Optional human-readable text.")
-    source_url: Optional[str] = Field(None, description="Optional authoritative source URL.")
+    description: str | None = Field(None, description="Optional human-readable text.")
+    source_url: str | None = Field(None, description="Optional authoritative source URL.")
 
     # Treat calendar entries as immutable config objects like UniversityConfig
     model_config = ConfigDict(frozen=True)
 
     @model_validator(mode="after")
-    def _validate_date_range(self) -> "CalendarEntry":
+    def _validate_date_range(self) -> CalendarEntry:
         """Ensure that when `end_date` is provided it's not earlier than `date`."""
         if self.end_date is not None and self.end_date < self.date:
             raise ValueError("end_date must be the same or after date")
