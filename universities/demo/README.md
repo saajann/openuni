@@ -23,3 +23,24 @@ universities/demo/
 3. List official document sources in `sources.yaml`.
 4. Run the ingestion pipeline: `python scripts/ingest.py --university <your-slug>`
 5. Submit a pull request — no application code changes needed.
+
+## Academic Calendar (`calendar.yaml`)
+
+Optionally include a `calendar.yaml` in the university folder to expose structured
+academic dates (exams, enrollment deadlines, holidays, and events). Entries are
+validated against the `CalendarEntry` model in the API and are intended for
+listing, filtering, and calendar views.
+
+Schema per item (YAML):
+
+```yaml
+- type: exam        # one of: exam, deadline, holiday, event
+	title: "Final exam registration"
+	date: 2026-06-01
+	end_date: 2026-06-10   # optional inclusive end date for ranges
+	description: "Registration window for final exams."
+	source_url: "https://example.edu/academic-calendar"
+```
+
+Add at least one item per type for development/testing convenience. See
+`calendar.yaml` in this demo folder for a minimal example.
