@@ -11,6 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from pydantic import AnyHttpUrl, PostgresDsn, SecretStr, field_validator
+from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
     EnvSettingsSource,
@@ -122,22 +123,28 @@ class Settings(BaseSettings):
             def prepare_field_value(
                 self,
                 field_name: str,
-                field: object,
+                field: FieldInfo,
                 value: object,
                 value_is_complex: bool,
             ) -> object:
                 if field_name == "cors_origins" and isinstance(value, str):
                     raw_value = value.strip()
+
+                    def _split_origins(raw_origins: str) -> list[str]:
+                        return [
+                            origin.strip() for origin in raw_origins.split(",") if origin.strip()
+                        ]
+
                     if not raw_value:
                         return []
                     if raw_value.startswith("["):
                         try:
                             parsed_value = json.loads(raw_value)
                         except json.JSONDecodeError:
-                            return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
+                            return _split_origins(raw_value)
                         if isinstance(parsed_value, list):
                             return parsed_value
-                    return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
+                    return _split_origins(raw_value)
 
                 return super().prepare_field_value(
                     field_name,
