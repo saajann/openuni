@@ -6,11 +6,18 @@ Pydantic-Settings validates all values at startup and gives clear error
 messages if something required is missing.
 """
 
+import json
 from functools import lru_cache
 from pathlib import Path
 
 from pydantic import AnyHttpUrl, PostgresDsn, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic.fields import FieldInfo
+from pydantic_settings import (
+    BaseSettings,
+    EnvSettingsSource,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 
 def _get_default_universities_dir() -> Path:
@@ -102,6 +109,56 @@ class Settings(BaseSettings):
                 "Set LLM_PROVIDER=openai or LLM_PROVIDER=ollama in your .env."
             )
         return v
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        class _SettingsEnvSource(EnvSettingsSource):
+            def prepare_field_value(
+                self,
+                field_name: str,
+                field: FieldInfo,
+                value: object,
+                value_is_complex: bool,
+            ) -> object:
+                if field_name == "cors_origins" and isinstance(value, str):
+                    raw_value = value.strip()
+
+                    def _split_origins(raw_origins: str) -> list[str]:
+                        return [
+                            origin.strip() for origin in raw_origins.split(",") if origin.strip()
+                        ]
+
+                    if not raw_value:
+                        return []
+                    if raw_value.startswith("["):
+                        try:
+                            parsed_value = json.loads(raw_value)
+                        except json.JSONDecodeError:
+                            return _split_origins(raw_value)
+                        if isinstance(parsed_value, list):
+                            return parsed_value
+                    return _split_origins(raw_value)
+
+                return super().prepare_field_value(
+                    field_name,
+                    field,
+                    value,
+                    value_is_complex,
+                )
+
+        return (
+            init_settings,
+            _SettingsEnvSource(settings_cls),
+            dotenv_settings,
+            file_secret_settings,
+        )
 
     @property
     def is_development(self) -> bool:
