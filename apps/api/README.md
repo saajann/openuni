@@ -152,7 +152,7 @@ No code changes or restarts beyond updating the env file are required.
 
 | Factor | `openai` (default) | `ollama` |
 |---|---|---|
-| **Setup** | API key required (`OPENAI_API_KEY`) | Ollama running locally, model pulled |
+| **Setup** | API key required (`OPENAI_API_KEY`) | Compose pulls the configured model before the service is healthy |
 | **Cost** | Pay-per-token (`gpt-4o-mini` is cheap) | Free / self-hosted |
 | **Offline** | ✗ requires internet | ✓ fully local |
 | **JSON mode** | ✓ native, very reliable | ⚠ supported but varies by model |
@@ -179,18 +179,21 @@ OPENAI_API_KEY=sk-...       # required
 ### Using Ollama (local / offline)
 
 ```bash
-# 1. Make sure Ollama is running and the model is pulled
-ollama pull llama3.1
+# Docker Compose starts Ollama and pulls the default generation model
+# (qwen2.5:0.5b) before the API depends on it. If Ollama is running outside
+# Compose, pull the configured model once:
+ollama pull "${OLLAMA_MODEL:-qwen2.5:0.5b}"
 
-# 2. In your .env
+# In your .env
 LLM_PROVIDER=ollama
 OLLAMA_URL=http://localhost:11434   # or http://ollama:11434 inside Docker
-# OLLAMA_MODEL=llama3.1             # optional override
+# OLLAMA_MODEL=qwen2.5:0.5b         # optional override
 ```
 
 > **Tip**: If you already run the Docker Compose stack, the `ollama` service
-> is already included in `infra/docker-compose.yml` and `OLLAMA_URL` defaults
-> to `http://ollama:11434` — no extra infrastructure needed.
+> is already included in `infra/docker-compose.yml`, pulls `OLLAMA_MODEL` at
+> startup, and `OLLAMA_URL` defaults to `http://ollama:11434` — no manual pull
+> is needed.
 
 ---
 

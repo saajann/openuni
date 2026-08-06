@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     # ── Ollama (generation) ───────────────────────────────────────────────────
     # Only used when llm_provider="ollama".  OLLAMA_URL is shared with the
     # embedding model (see embedding_model above).
-    ollama_model: str = "llama3.1"
+    ollama_model: str = "qwen2.5:0.5b"
 
     # ── Content ───────────────────────────────────────────────────────────────
     # We resolve the universities directory dynamically in case we run via uvicorn directly

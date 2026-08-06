@@ -72,6 +72,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
     develop:
       watch:
         - action: sync
@@ -86,12 +88,16 @@ services:
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
+    entrypoint: ["/bin/sh", "/usr/local/bin/openuni-ollama-entrypoint"]
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:0.5b}
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+      - ./ollama-entrypoint.sh:/usr/local/bin/openuni-ollama-entrypoint:ro
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:11434/api/tags > /dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:11434/api/tags > /dev/null && test -f /tmp/openuni-generation-model-ready"]
       interval: 10s
       timeout: 5s
       retries: 5
