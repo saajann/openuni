@@ -95,7 +95,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./ollama-entrypoint.sh:/usr/local/bin/openuni-ollama-entrypoint:ro
+      - ./ollama/entrypoint.sh:/usr/local/bin/openuni-ollama-entrypoint:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:11434/api/tags > /dev/null && test -f /tmp/openuni-generation-model-ready"]
       interval: 10s
