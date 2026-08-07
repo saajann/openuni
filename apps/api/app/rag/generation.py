@@ -15,7 +15,7 @@ Supported LLM providers (controlled by ``settings.llm_provider``):
     Requires ``OPENAI_API_KEY`` in the environment.
   * **ollama** — Local Ollama instance via its OpenAI-compatible ``/v1``
     endpoint.  Requires a running Ollama server (``OLLAMA_URL``) and the
-    desired model pulled (``OLLAMA_MODEL``, default ``llama3.1``).
+    desired model pulled (``OLLAMA_MODEL``, default ``qwen2.5:0.5b``).
     No API key needed; the same ``openai.OpenAI`` client is reused,
     pointed at ``<OLLAMA_URL>/v1``.
 
