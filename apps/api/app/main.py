@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 from app.core import universities
 from app.core.config import Settings, get_settings
+from app.routers import calendar as calendar_router
 from app.routers import chat as chat_router
 
 
@@ -103,6 +104,7 @@ def create_app() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────────────────────
     application.include_router(chat_router.router)
+    application.include_router(calendar_router.router)
 
     # ── Routes ────────────────────────────────────────────────────────────────
     class UniversityPublic(BaseModel):
