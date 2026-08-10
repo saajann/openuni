@@ -12,6 +12,7 @@ Every real university deployment will have its own folder under `universities/<s
 universities/demo/
 ├── config.yaml          # University metadata (name, locale, base URLs)
 ├── sources.yaml         # Document sources to ingest (URLs, crawl rules)
+├── calendar.yaml        # Academic calendar entries (exams, deadlines, holidays, events)
 ├── prompts/             # University-specific system prompt overrides (optional)
 └── README.md            # ← you are here
 ```
@@ -35,11 +36,11 @@ Schema per item (YAML):
 
 ```yaml
 - type: exam        # one of: exam, deadline, holiday, event
-	title: "Final exam registration"
-	date: 2026-06-01
-	end_date: 2026-06-10   # optional inclusive end date for ranges
-	description: "Registration window for final exams."
-	source_url: "https://example.edu/academic-calendar"
+  title: "Final exam registration"
+  date: 2026-06-01
+  end_date: 2026-06-10   # optional inclusive end date for ranges
+  description: "Registration window for final exams."
+  source_url: "https://example.edu/academic-calendar"
 ```
 
 Add at least one item per type for development/testing convenience. See
