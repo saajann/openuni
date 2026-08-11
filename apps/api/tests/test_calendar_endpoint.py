@@ -21,6 +21,8 @@ from app.core import universities
 from app.core.config import get_settings
 from app.main import app
 
+CalendarEntry = dict[str, str]
+
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -59,7 +61,7 @@ def demo_university(tmp_path: Path) -> Iterator[Path]:
 
 
 @pytest.fixture()
-def demo_calendar(demo_university: Path) -> list[dict]:
+def demo_calendar(demo_university: Path) -> list[CalendarEntry]:
     """Write a representative calendar.yaml for the temporary demo university."""
     calendar_data = [
         {
@@ -92,7 +94,9 @@ def demo_calendar(demo_university: Path) -> list[dict]:
 # ── GET /universities/{slug}/calendar — happy path ────────────────────────────
 
 
-def test_calendar_returns_all_entries(client: TestClient, demo_calendar: list[dict]) -> None:
+def test_calendar_returns_all_entries(
+    client: TestClient, demo_calendar: list[CalendarEntry]
+) -> None:
     """A known university with a calendar returns every entry."""
     response = client.get("/universities/demo/calendar")
 
@@ -118,7 +122,7 @@ def test_calendar_missing_file_returns_empty_list(
 
 
 def test_calendar_unknown_university_returns_404(
-    client: TestClient, demo_calendar: list[dict]
+    client: TestClient, demo_calendar: list[CalendarEntry]
 ) -> None:
     """An unrecognised slug must yield HTTP 404."""
     response = client.get("/universities/nonexistent-uni/calendar")
@@ -130,7 +134,7 @@ def test_calendar_unknown_university_returns_404(
 # ── ?type= filtering ──────────────────────────────────────────────────────────
 
 
-def test_calendar_type_filter(client: TestClient, demo_calendar: list[dict]) -> None:
+def test_calendar_type_filter(client: TestClient, demo_calendar: list[CalendarEntry]) -> None:
     """?type=deadline returns only deadline entries."""
     response = client.get("/universities/demo/calendar", params={"type": "deadline"})
 
@@ -141,7 +145,9 @@ def test_calendar_type_filter(client: TestClient, demo_calendar: list[dict]) -> 
     assert data[0]["title"] == "Tuition payment deadline"
 
 
-def test_calendar_invalid_type_returns_422(client: TestClient, demo_calendar: list[dict]) -> None:
+def test_calendar_invalid_type_returns_422(
+    client: TestClient, demo_calendar: list[CalendarEntry]
+) -> None:
     """A type outside exam/deadline/holiday/event must yield HTTP 422."""
     response = client.get("/universities/demo/calendar", params={"type": "party"})
 
@@ -151,7 +157,7 @@ def test_calendar_invalid_type_returns_422(client: TestClient, demo_calendar: li
 # ── ?from= / ?to= filtering ───────────────────────────────────────────────────
 
 
-def test_calendar_from_filter(client: TestClient, demo_calendar: list[dict]) -> None:
+def test_calendar_from_filter(client: TestClient, demo_calendar: list[CalendarEntry]) -> None:
     """?from= drops entries that end before the bound."""
     response = client.get("/universities/demo/calendar", params={"from": "2026-09-01"})
 
@@ -160,7 +166,7 @@ def test_calendar_from_filter(client: TestClient, demo_calendar: list[dict]) -> 
     assert titles == ["Tuition payment deadline", "Christmas holiday", "Freshers' Orientation"]
 
 
-def test_calendar_to_filter(client: TestClient, demo_calendar: list[dict]) -> None:
+def test_calendar_to_filter(client: TestClient, demo_calendar: list[CalendarEntry]) -> None:
     """?to= drops entries that start after the bound."""
     response = client.get("/universities/demo/calendar", params={"to": "2026-09-01"})
 
@@ -170,7 +176,7 @@ def test_calendar_to_filter(client: TestClient, demo_calendar: list[dict]) -> No
 
 
 def test_calendar_range_overlaps_multi_day_entry(
-    client: TestClient, demo_calendar: list[dict]
+    client: TestClient, demo_calendar: list[CalendarEntry]
 ) -> None:
     """A from/to window inside a multi-day entry still matches that entry."""
     response = client.get(
@@ -184,7 +190,9 @@ def test_calendar_range_overlaps_multi_day_entry(
     assert data[0]["title"] == "Exam registration window"
 
 
-def test_calendar_invalid_date_returns_422(client: TestClient, demo_calendar: list[dict]) -> None:
+def test_calendar_invalid_date_returns_422(
+    client: TestClient, demo_calendar: list[CalendarEntry]
+) -> None:
     """A malformed date bound must yield HTTP 422."""
     response = client.get("/universities/demo/calendar", params={"from": "not-a-date"})
 
