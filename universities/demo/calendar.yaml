@@ -8,6 +8,12 @@
   source_url: "https://demo.example.edu/academic-calendar"
 
 - type: deadline
+  title: "Enrollment period closes"
+  date: 2026-08-24
+  description: "Last day to enroll in classes through the student portal (see enrollment FAQ)."
+  source_url: "https://demo.example.edu/enrollment/faq"
+
+- type: deadline
   title: "Tuition payment deadline"
   date: 2026-09-01
   description: "Last day to pay tuition to avoid deregistration."
