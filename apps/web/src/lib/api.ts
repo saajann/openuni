@@ -8,6 +8,17 @@ export interface ChatResponse {
   sources: SourceItem[];
 }
 
+export type CalendarEntryType = "exam" | "deadline" | "holiday" | "event";
+
+export interface CalendarEntry {
+  type: CalendarEntryType;
+  title: string;
+  date: string;
+  end_date: string | null;
+  description: string | null;
+  source_url: string | null;
+}
+
 export async function sendChatMessage(
   university: string,
   question: string
@@ -33,5 +44,17 @@ export async function getUniversities(): Promise<{ slug: string; name: string }[
   if (!res.ok) {
     throw new Error(`Failed to fetch universities: ${res.status}`);
   }
+  return res.json();
+}
+
+export async function getCalendar(university: string): Promise<CalendarEntry[]> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const res = await fetch(`${baseUrl}/universities/${encodeURIComponent(university)}/calendar`);
+
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail || `Failed to fetch calendar: ${res.status}`);
+  }
+
   return res.json();
 }
