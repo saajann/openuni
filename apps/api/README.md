@@ -136,6 +136,7 @@ at the repo root for the full list with descriptions.
 
 | Method | Path      | Description                                      |
 |--------|-----------|--------------------------------------------------|
+| GET    | `/universities/{slug}/calendar` | Academic calendar entries; optional `type`, `from`, `to` filters |
 | GET    | `/health` | Liveness — always 200 if the process is running  |
 | GET    | `/ready`  | Readiness — 200 only when DB + Qdrant are reachable |
 | GET    | `/docs`   | Swagger UI (development mode only)              |
