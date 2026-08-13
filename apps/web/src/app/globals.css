@@ -237,3 +237,125 @@ select:focus, input[type="text"]:focus {
   text-align: center;
   animation: fadeIn 0.3s ease;
 }
+
+/* Academic Calendar */
+.calendar-header {
+  margin-bottom: 2rem;
+}
+
+.calendar-controls {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.calendar-university-field {
+  margin-bottom: 0;
+}
+
+.calendar-list {
+  display: grid;
+  gap: 1rem;
+  animation: fadeIn 0.4s ease;
+}
+
+.calendar-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.calendar-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-secondary);
+}
+
+.calendar-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-card time {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.calendar-card h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-card p {
+  font-size: 0.925rem;
+}
+
+.calendar-card a {
+  color: var(--accent-color);
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0.85rem;
+  text-decoration: none;
+}
+
+.calendar-card a:hover {
+  text-decoration: underline;
+}
+
+.calendar-type {
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  padding: 0.25rem 0.6rem;
+  text-transform: uppercase;
+}
+
+.calendar-type-exam {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.calendar-type-deadline {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.calendar-type-holiday {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.calendar-type-event {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+}
+
+.empty-state {
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.empty-state h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 520px) {
+  .calendar-card-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
