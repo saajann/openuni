@@ -107,3 +107,4 @@ docker-compose.override.yml
 *.log
 tmp/
 temp/
+issues/
