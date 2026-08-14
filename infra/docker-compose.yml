@@ -97,11 +97,11 @@ services:
       - ollama_data:/root/.ollama
       - ./ollama/entrypoint.sh:/usr/local/bin/openuni-ollama-entrypoint:ro
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:11434/api/tags > /dev/null && test -f /tmp/openuni-generation-model-ready"]
-      interval: 10s
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 && test -f /tmp/openuni-generation-model-ready"]
+      interval: ${OLLAMA_HEALTH_INTERVAL:-10s}
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: ${OLLAMA_HEALTH_RETRIES:-60}
+      start_period: ${OLLAMA_HEALTH_START_PERIOD:-5m}
 
   # ── Web Frontend ──────────────────────────────────────────────────────────────
   web:
