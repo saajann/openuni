@@ -36,8 +36,10 @@ openuni/
 │   ├── ISSUE_TEMPLATE/ # Bug, feature & task issue templates
 │   └── pull_request_template.md
 ├── .gitignore
+├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md   # How to contribute
 ├── LICENSE
+├── SECURITY.md
 ├── VISION.md
 └── README.md         # ← you are here
 ```
@@ -97,6 +99,10 @@ We welcome contributions of all kinds! Please read **[CONTRIBUTING.md](./CONTRIB
 - Branch naming & commit message conventions
 - How to open a focused, well-scoped PR
 - Code style expectations
+
+Please also review our community and security guidelines:
+- **[Code of Conduct](./CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1 standards for an open, welcoming community.
+- **[Security Policy](./SECURITY.md)** — How to responsibly report vulnerabilities privately.
 
 Each subdirectory also has its own `README.md` explaining its purpose and structure. Start there, then check `docs/` for architecture context.
 

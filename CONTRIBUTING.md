@@ -21,7 +21,9 @@ Please read this guide before opening an issue or pull request so your contribut
 
 ## Code of Conduct
 
-By participating you agree to abide by our [Code of Conduct](./CODE_OF_CONDUCT.md) (coming soon). In short: be kind, be constructive, and assume good faith.
+By participating you agree to abide by our [Code of Conduct](./CODE_OF_CONDUCT.md). In short: be kind, be constructive, and assume good faith.
+
+For reporting security issues or vulnerabilities, please refer to our [Security Policy](./SECURITY.md).
 
 ---
 
