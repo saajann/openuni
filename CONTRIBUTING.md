@@ -16,6 +16,7 @@ Please read this guide before opening an issue or pull request so your contribut
 5. [How to Open a Pull Request](#how-to-open-a-pull-request)
 6. [Code Style & Linting](#code-style--linting)
 7. [Repo Structure Cheatsheet](#repo-structure-cheatsheet)
+8. [Dependency Maintenance Policy](#dependency-maintenance-policy)
 
 ---
 
@@ -144,6 +145,26 @@ Once linting is configured, CI will enforce it automatically and PRs that fail l
 | Architecture decisions or guides | `docs/` |
 
 See the root [README.md](./README.md) for the full directory layout.
+
+---
+
+## Dependency Maintenance Policy
+
+OpenUni uses **GitHub Dependabot** to automate security updates and dependency maintenance across the codebase:
+
+### Scheduled Runs & Grouping
+- **Schedule:** Automated checks run weekly on **Monday at 04:00 UTC**.
+- **Monitored Ecosystems:**
+  - `pip`: Python dependencies for `apps/api/` and `packages/ingestion/`
+  - `npm`: Frontend packages for `apps/web/`
+  - `github-actions`: Workflows in `.github/workflows/`
+- **Grouping:** Minor and patch updates are automatically grouped into single batch pull requests to reduce notification noise. Major version bumps remain as separate PRs to allow focused review on breaking changes.
+- **Labels & Prefixes:** Dependabot PRs are automatically tagged with the `dependencies` label and use the conventional commit prefix `chore(deps):`.
+
+### Review & Merge Guidelines
+1. **Automated CI:** All Dependabot pull requests must pass their respective CI workflows (`ci-api`, `ci-ingestion`, `ci-web`).
+2. **Minor & Patch Updates:** Grouped minor/patch PRs can be merged after automated CI verification passes.
+3. **Major Updates:** Major version updates require manual review, changelog inspection, and validation against breaking changes before merging.
 
 ---
 
