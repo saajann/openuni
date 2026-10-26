@@ -17,12 +17,11 @@ This package contains the **OpenUni REST API**, built with [FastAPI](https://fas
 apps/api/
 ├── app/
 │   ├── main.py          # FastAPI application entry-point & route definitions
-│   ├── core/
-│   │   └── config.py    # Pydantic-Settings config (reads env vars)
-│   ├── routers/         # Route handlers (chat, search, health, …) — coming soon
-│   ├── services/        # Business logic (RAG pipeline, LLM calls, …) — coming soon
-│   └── models/          # Pydantic request/response schemas — coming soon
-├── tests/
+│   ├── core/            # App configuration (settings, calendar utilities, university loader)
+│   ├── models/          # Pydantic request/response schemas (chat, calendar, university)
+│   ├── rag/             # RAG pipeline implementation (retrieval, generation)
+│   └── routers/         # API route handlers (chat, calendar)
+├── tests/               # Unit & integration test suite
 ├── Dockerfile
 ├── pyproject.toml
 └── README.md            # ← you are here
@@ -62,7 +61,7 @@ That's it.  Three services will be running:
 # Liveness — should return {"status": "ok"}
 curl http://localhost:8000/health
 
-# Readiness — checks Postgres + Qdrant reachability
+# Readiness — checks Postgres + Qdrant + Ollama reachability
 curl http://localhost:8000/ready
 ```
 
@@ -134,13 +133,15 @@ at the repo root for the full list with descriptions.
 
 ## API endpoints
 
-| Method | Path      | Description                                      |
-|--------|-----------|--------------------------------------------------|
-| GET    | `/universities/{slug}/calendar` | Academic calendar entries; optional `type`, `from`, `to` filters |
-| GET    | `/health` | Liveness — always 200 if the process is running  |
-| GET    | `/ready`  | Readiness — 200 only when DB + Qdrant are reachable |
-| GET    | `/docs`   | Swagger UI (development mode only)              |
-| GET    | `/redoc`  | ReDoc (development mode only)                   |
+| Method | Path                            | Description                                                                     |
+|--------|---------------------------------|---------------------------------------------------------------------------------|
+| POST   | `/chat`                         | Send message to assistant; executes RAG retrieval and LLM generation            |
+| GET    | `/universities`                 | List onboarded universities (slug, name, locale, domain)                         |
+| GET    | `/universities/{slug}/calendar` | Academic calendar entries; optional `type`, `from`, `to` filters                |
+| GET    | `/health`                       | Liveness — 200 if the API process is running                                   |
+| GET    | `/ready`                        | Readiness — 200 when PostgreSQL, Qdrant, and Ollama are reachable (503 if down) |
+| GET    | `/docs`                         | Swagger UI (development mode only)                                              |
+| GET    | `/redoc`                        | ReDoc (development mode only)                                                   |
 
 ---
 

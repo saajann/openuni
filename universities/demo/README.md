@@ -6,24 +6,26 @@ This is a **placeholder university configuration** used for local development, t
 
 Every real university deployment will have its own folder under `universities/<slug>/` containing only configuration — no code changes required to add a new university.
 
-## Planned structure
+## Structure
 
 ```
 universities/demo/
-├── config.yaml          # University metadata (name, locale, base URLs)
-├── sources.yaml         # Document sources to ingest (URLs, crawl rules)
+├── config.yaml          # University metadata (slug, name, locale, domain, qdrant_collection, sources)
 ├── calendar.yaml        # Academic calendar entries (exams, deadlines, holidays, events)
-├── prompts/             # University-specific system prompt overrides (optional)
+├── sources/             # Document sources to ingest (.txt, .md, .pdf)
+│   ├── enrollment-faq.txt
+│   └── exam-regulations.txt
 └── README.md            # ← you are here
 ```
 
 ## Adding a real university
 
 1. Copy this folder: `cp -r universities/demo universities/<your-slug>`
-2. Fill in `config.yaml` with the university's name, locale, and branding.
-3. List official document sources in `sources.yaml`.
-4. Run the ingestion pipeline: `python scripts/ingest.py --university <your-slug>`
-5. Submit a pull request — no application code changes needed.
+2. Fill in `config.yaml` with the university's name, locale, domain, and collection settings.
+3. Place official source documents (.txt, .md, or .pdf) in `universities/<your-slug>/sources/`.
+4. (Optional) Provide structured academic dates in `calendar.yaml`.
+5. Run the ingestion pipeline: `python -m ingestion.cli --university <your-slug>`
+6. Submit a pull request — no application code changes needed.
 
 ## Academic Calendar (`calendar.yaml`)
 

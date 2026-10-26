@@ -73,13 +73,15 @@ cp .env.example .env
 docker compose -f infra/docker-compose.yml up --build
 ```
 
-This brings up three services:
+This brings up the full development stack:
 
 | Service  | URL                     | Notes                           |
 |----------|-------------------------|---------------------------------|
-| API      | http://localhost:8000   | `/docs` for interactive Swagger |
+| Web      | http://localhost:3000   | Next.js frontend                |
+| API      | http://localhost:8000   | FastAPI backend (`/docs` for Swagger) |
 | Qdrant   | http://localhost:6333   | Vector DB dashboard             |
-| Postgres | localhost:5432          | Any Postgres client works       |
+| Ollama   | http://localhost:11434  | Local LLM / embedding service   |
+| Postgres | localhost:5432          | Relational database             |
 
 Verify the API is healthy:
 

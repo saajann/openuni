@@ -121,17 +121,45 @@ refactor(web): extract ChatMessage into shared component
 
 ## Code Style & Linting
 
-> ⚠️ **Placeholder — linting tooling is not yet configured.**  
-> This section will be updated once linters and formatters are set up for each sub-project.
+All code changes are automatically validated by GitHub Actions CI workflows (`ci-api.yml`, `ci-ingestion.yml`, and `ci-web.yml`). Please run the appropriate linters and test commands locally before pushing.
 
-### General expectations (applies now)
+### Python (`apps/api/`, `packages/ingestion/`)
 
-- **Python** (`apps/api/`, `packages/ingestion/`): follow [PEP 8](https://peps.python.org/pep-0008/). We plan to adopt **Ruff** for linting and formatting.
-- **TypeScript / JavaScript** (`apps/web/`): follow standard React/Next.js conventions. We plan to adopt **ESLint** + **Prettier**.
-- Avoid committing debug prints, commented-out code blocks, or TODO comments that belong in an issue.
-- All new public functions and modules should have docstrings / JSDoc comments.
+- Follow [PEP 8](https://peps.python.org/pep-0008/).
+- **Linting & Formatting:** Enforced with **Ruff**.
+  ```bash
+  ruff check .
+  ruff format --check .
+  # To automatically fix lint and formatting:
+  ruff check --fix .
+  ruff format .
+  ```
+- **Type Checking:** Enforced with **mypy** on `apps/api/`.
+  ```bash
+  mypy .
+  ```
+- **Testing:** Enforced with **pytest**.
+  ```bash
+  pytest
+  ```
 
-Once linting is configured, CI will enforce it automatically and PRs that fail lint checks will not be merged.
+### TypeScript / JavaScript (`apps/web/`)
+
+- Follow standard React and Next.js conventions.
+- **Linting:** Enforced with **ESLint**.
+  ```bash
+  npm run lint
+  ```
+- **Build verification:** Enforced with Next.js build.
+  ```bash
+  npm run build
+  ```
+
+### General expectations
+
+- Avoid committing debug prints, commented-out code blocks, or temporary files.
+- All new public functions and modules should have docstrings or JSDoc comments.
+- Pull requests must pass all CI checks before merge.
 
 ---
 
