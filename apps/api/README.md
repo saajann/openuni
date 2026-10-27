@@ -47,12 +47,14 @@ cp .env.example .env
 docker compose -f infra/docker-compose.yml up --build
 ```
 
-That's it.  Three services will be running:
+That's it. Five services will be running:
 
 | Service  | URL                       | Notes                          |
 |----------|---------------------------|--------------------------------|
+| Web      | http://localhost:3000     | Next.js frontend               |
 | API      | http://localhost:8000     | FastAPI app; `/docs` for Swagger |
 | Qdrant   | http://localhost:6333     | Vector DB REST API & dashboard |
+| Ollama   | http://localhost:11434    | Local LLM / embedding service  |
 | Postgres | localhost:5432            | Use any Postgres client        |
 
 ### Verify the stack
