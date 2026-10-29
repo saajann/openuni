@@ -471,6 +471,10 @@ select:focus, input[type="text"]:focus {
   animation: fadeIn 0.3s ease;
 }
 
+.retry-button {
+  margin-top: 0.75rem;
+}
+
 /* Academic Calendar */
 .calendar-header {
   margin-bottom: 2rem;
