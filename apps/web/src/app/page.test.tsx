@@ -1,14 +1,23 @@
-import { screen } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getUniversities, sendChatMessage } from "@/lib/api";
+import { getUniversities, sendChatMessage, type ChatResponse } from "@/lib/api";
 
 import { ChatWorkspace } from "@/components/chat-workspace";
 import { demoUniversities, makeChatResponse } from "@/test/fixtures";
 import { renderWithProviders } from "@/test/render";
 
 vi.mock("@/lib/api");
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+
+  return { promise, resolve };
+}
 
 describe("ChatWorkspace", () => {
   beforeEach(() => {
@@ -46,6 +55,85 @@ describe("ChatWorkspace", () => {
     await user.click(screen.getByRole("button", { name: "Ask Question" }));
 
     expect(await screen.findByText("provider unavailable")).toBeInTheDocument();
+  });
+
+  it("offers a retry action and resubmits the failed request", async () => {
+    const user = userEvent.setup();
+    vi.mocked(sendChatMessage)
+      .mockRejectedValueOnce(new Error("provider unavailable"))
+      .mockResolvedValueOnce(makeChatResponse());
+
+    renderWithProviders(<ChatWorkspace />);
+
+    await user.type(screen.getByLabelText("What do you want to know?"), "When is the exam?");
+    await user.click(screen.getByRole("button", { name: "Ask Question" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("provider unavailable");
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByRole("heading", { name: "Answer" })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(sendChatMessage).toHaveBeenCalledTimes(2);
+    expect(sendChatMessage).toHaveBeenNthCalledWith(1, "demo", "When is the exam?");
+    expect(sendChatMessage).toHaveBeenNthCalledWith(2, "demo", "When is the exam?");
+  });
+
+  it("retries the failed pair even after the form changes", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getUniversities).mockResolvedValue([
+      ...demoUniversities,
+      { slug: "other", name: "Other University" },
+    ]);
+    vi.mocked(sendChatMessage)
+      .mockRejectedValueOnce(new Error("provider unavailable"))
+      .mockResolvedValueOnce(makeChatResponse());
+
+    renderWithProviders(<ChatWorkspace />);
+
+    const questionInput = screen.getByLabelText("What do you want to know?");
+    await user.type(questionInput, "When is the exam?");
+    await user.click(screen.getByRole("button", { name: "Ask Question" }));
+
+    await screen.findByRole("button", { name: "Try again" });
+    await screen.findByRole("option", { name: "Other University" });
+
+    await user.selectOptions(screen.getByLabelText("University"), "other");
+    await user.clear(questionInput);
+    await user.type(questionInput, "A different question");
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByRole("heading", { name: "Answer" })).toBeInTheDocument();
+    expect(sendChatMessage).toHaveBeenNthCalledWith(2, "demo", "When is the exam?");
+  });
+
+  it("clears the error and disables the form while a retry is in flight", async () => {
+    const user = userEvent.setup();
+    const pending = deferred<ChatResponse>();
+    vi.mocked(sendChatMessage)
+      .mockRejectedValueOnce(new Error("provider unavailable"))
+      .mockReturnValueOnce(pending.promise);
+
+    renderWithProviders(<ChatWorkspace />);
+
+    await user.type(screen.getByLabelText("What do you want to know?"), "When is the exam?");
+    await user.click(screen.getByRole("button", { name: "Ask Question" }));
+    await screen.findByRole("button", { name: "Try again" });
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText("Analyzing university documents...")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Searching..." })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+
+    await act(async () => {
+      pending.resolve(makeChatResponse());
+      await pending.promise;
+    });
+
+    expect(await screen.findByRole("heading", { name: "Answer" })).toBeInTheDocument();
   });
 
   it("renders a grounded answer and its sources", async () => {

@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import { sendChatMessage, ChatResponse, getUniversities } from "@/lib/api";
 
+interface ChatRequest {
+  university: string;
+  question: string;
+}
+
 function AnswerText({ text }: { text: string }) {
   const paragraphs = text
     .split(/\n{2,}/)
@@ -29,6 +34,7 @@ export function ChatWorkspace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<ChatResponse | null>(null);
+  const [failedRequest, setFailedRequest] = useState<ChatRequest | null>(null);
 
   // Load universities on component mount
   useEffect(() => {
@@ -49,23 +55,33 @@ export function ChatWorkspace() {
     loadUniversities();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question.trim()) return;
-
+  const submitRequest = async (request: ChatRequest) => {
     setLoading(true);
     setError(null);
     setResponse(null);
+    setFailedRequest(null);
 
     try {
-      const data = await sendChatMessage(university, question);
+      const data = await sendChatMessage(request.university, request.question);
       setResponse(data);
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
       setError(message);
+      setFailedRequest(request);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!question.trim()) return;
+    void submitRequest({ university, question });
+  };
+
+  const handleRetry = () => {
+    if (!failedRequest) return;
+    void submitRequest(failedRequest);
   };
 
   return (
@@ -111,7 +127,17 @@ export function ChatWorkspace() {
 
         {error && (
           <div className="error-message" role="alert">
-            {error}
+            <p>{error}</p>
+            {failedRequest && (
+              <button
+                type="button"
+                className="btn-primary retry-button"
+                onClick={handleRetry}
+                disabled={loading}
+              >
+                Try again
+              </button>
+            )}
           </div>
         )}
       </form>
