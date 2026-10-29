@@ -19,7 +19,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "ruff>=0.4.0",
+    "ruff>=0.17.2",
 ]
 
 # ─── Ruff (linter + formatter) ────────────────────────────────────────────────
