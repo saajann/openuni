@@ -12,7 +12,7 @@ dependencies = [
     "qdrant-client>=1.7.0",
     "PyMuPDF>=1.23.0",
     "PyYAML>=6.0.3",
-    "httpx>=0.25.0",
+    "httpx>=0.28.1",
     "pydantic>=2.14.1",
 ]
 
