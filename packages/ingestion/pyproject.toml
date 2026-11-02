@@ -13,7 +13,7 @@ dependencies = [
     "PyMuPDF>=1.28.2",
     "PyYAML>=6.0.3",
     "httpx>=0.28.1",
-    "pydantic>=2.14.1",
+    "pydantic>=2.14.2",
 ]
 
 [project.optional-dependencies]
