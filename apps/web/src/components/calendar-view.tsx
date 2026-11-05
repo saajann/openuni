@@ -1,6 +1,8 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+
 import {
   CalendarEntry,
   CalendarEntryType,
@@ -14,6 +16,45 @@ const typeLabels: Record<CalendarEntryType, string> = {
   holiday: "Holiday",
   event: "Event",
 };
+
+const calendarTypes = Object.keys(typeLabels) as CalendarEntryType[];
+
+interface CalendarFilterState {
+  type: CalendarEntryType | "";
+  from: string;
+  to: string;
+}
+
+function isCalendarType(value: string | null): value is CalendarEntryType {
+  return value !== null && calendarTypes.includes(value as CalendarEntryType);
+}
+
+function isIsoDate(value: string | null): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function readFilters(params: { get: (name: string) => string | null }): CalendarFilterState {
+  const type = params.get("type");
+  const from = params.get("from");
+  const to = params.get("to");
+
+  return {
+    type: isCalendarType(type) ? type : "",
+    from: isIsoDate(from) ? from : "",
+    to: isIsoDate(to) ? to : "",
+  };
+}
+
+function validateFilters(filters: CalendarFilterState): string | null {
+  if (filters.from && filters.to && filters.from > filters.to) {
+    return "The start date must be on or before the end date.";
+  }
+
+  return null;
+}
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -31,11 +72,37 @@ function formatDateRange(entry: CalendarEntry) {
 }
 
 export function CalendarView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const urlKey = searchParams.toString();
+  const initialFilters = readFilters(searchParams);
+  const [lastUrlKey, setLastUrlKey] = useState(urlKey);
   const [universities, setUniversities] = useState<{ slug: string; name: string }[]>([]);
   const [university, setUniversity] = useState("");
+  const [typeFilter, setTypeFilter] = useState<CalendarEntryType | "">(initialFilters.type);
+  const [fromFilter, setFromFilter] = useState(initialFilters.from);
+  const [toFilter, setToFilter] = useState(initialFilters.to);
   const [entries, setEntries] = useState<CalendarEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (urlKey !== lastUrlKey) {
+    const nextFilters = readFilters(searchParams);
+    setLastUrlKey(urlKey);
+    setTypeFilter(nextFilters.type);
+    setFromFilter(nextFilters.from);
+    setToFilter(nextFilters.to);
+  }
+
+  const validationError = validateFilters({
+    type: typeFilter,
+    from: fromFilter,
+    to: toFilter,
+  });
+  const hasActiveFilters = Boolean(typeFilter || fromFilter || toFilter);
+  const isLoading = loading && !validationError;
 
   useEffect(() => {
     let active = true;
@@ -45,12 +112,12 @@ export function CalendarView() {
         const data = await getUniversities();
         if (!active) return;
         setUniversities(data);
-        setUniversity(data[0]?.slug ?? "");
+        setUniversity((current) => current || data[0]?.slug || "");
       } catch (err) {
         console.error("Failed to load universities:", err);
         if (!active) return;
         setUniversities([{ slug: "demo", name: "Demo University" }]);
-        setUniversity("demo");
+        setUniversity((current) => current || "demo");
       }
     }
 
@@ -61,19 +128,22 @@ export function CalendarView() {
   }, []);
 
   useEffect(() => {
-    if (!university) return;
+    if (!university || validationError) return;
 
     let active = true;
 
     async function loadCalendar() {
-      await Promise.resolve();
-      if (!active) return;
       setLoading(true);
       setError(null);
       setEntries([]);
 
       try {
-        const data = await getCalendar(university);
+        const filters: { type?: CalendarEntryType; from?: string; to?: string } = {};
+        if (typeFilter) filters.type = typeFilter;
+        if (fromFilter) filters.from = fromFilter;
+        if (toFilter) filters.to = toFilter;
+
+        const data = await getCalendar(university, filters);
         if (active) setEntries(data);
       } catch (err) {
         if (!active) return;
@@ -88,10 +158,43 @@ export function CalendarView() {
     return () => {
       active = false;
     };
-  }, [university]);
+  }, [university, typeFilter, fromFilter, toFilter, validationError]);
+
+  function updateFilters(patch: Partial<CalendarFilterState>) {
+    const next: CalendarFilterState = {
+      type: typeFilter,
+      from: fromFilter,
+      to: toFilter,
+      ...patch,
+    };
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (next.type) params.set("type", next.type);
+    else params.delete("type");
+    if (next.from) params.set("from", next.from);
+    else params.delete("from");
+    if (next.to) params.set("to", next.to);
+    else params.delete("to");
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+
+    setTypeFilter(next.type);
+    setFromFilter(next.from);
+    setToFilter(next.to);
+  }
+
+  function clearFilters() {
+    updateFilters({ type: "", from: "", to: "" });
+  }
 
   const sortedEntries = useMemo(
-    () => [...entries].sort((a, b) => a.date.localeCompare(b.date)),
+    () =>
+      [...entries].sort((a, b) => {
+        const dateComparison = a.date.localeCompare(b.date);
+        if (dateComparison !== 0) return dateComparison;
+        return a.title.localeCompare(b.title);
+      }),
     [entries]
   );
 
@@ -109,7 +212,7 @@ export function CalendarView() {
             id="university"
             value={university}
             onChange={(event) => setUniversity(event.target.value)}
-            disabled={loading || universities.length === 0}
+            disabled={isLoading || universities.length === 0}
           >
             {universities.map((uni) => (
               <option key={uni.slug} value={uni.slug}>
@@ -118,29 +221,99 @@ export function CalendarView() {
             ))}
           </select>
         </div>
+
+        <div className="calendar-filters" role="group" aria-labelledby="calendar-filters-heading">
+          <div className="calendar-filters-heading">
+            <h2 id="calendar-filters-heading">Filter calendar</h2>
+            {hasActiveFilters && (
+              <button type="button" className="btn-secondary" onClick={clearFilters}>
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          <div className="calendar-filter-grid">
+            <div className="form-group">
+              <label htmlFor="calendar-type">Entry type</label>
+              <select
+                id="calendar-type"
+                value={typeFilter}
+                onChange={(event) =>
+                  updateFilters({
+                    type: event.target.value as CalendarEntryType | "",
+                  })
+                }
+              >
+                <option value="">All types</option>
+                {calendarTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {typeLabels[type]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="calendar-from">From</label>
+              <input
+                id="calendar-from"
+                type="date"
+                value={fromFilter}
+                onChange={(event) => updateFilters({ from: event.target.value })}
+                aria-invalid={validationError ? true : undefined}
+                aria-describedby={validationError ? "calendar-date-error" : undefined}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="calendar-to">To</label>
+              <input
+                id="calendar-to"
+                type="date"
+                value={toFilter}
+                onChange={(event) => updateFilters({ to: event.target.value })}
+                aria-invalid={validationError ? true : undefined}
+                aria-describedby={validationError ? "calendar-date-error" : undefined}
+              />
+            </div>
+          </div>
+
+          {validationError && (
+            <p className="field-error" id="calendar-date-error" role="alert">
+              {validationError}
+            </p>
+          )}
+        </div>
       </section>
 
-      {loading && (
-        <div className="loading-container" role="status">
+      {isLoading && (
+        <div className="loading-container" role="status" aria-live="polite">
           <div className="spinner" aria-hidden="true"></div>
           <p>Loading calendar entries...</p>
         </div>
       )}
 
-      {error && !loading && (
+      {error && !isLoading && !validationError && (
         <div className="error-message" role="alert">
           {error}
         </div>
       )}
 
-      {!loading && !error && university && sortedEntries.length === 0 && (
-        <div className="empty-state">
-          <h2>No calendar entries</h2>
-          <p>This university has not published any calendar dates yet.</p>
-        </div>
-      )}
+      {!isLoading &&
+        !error &&
+        !validationError &&
+        university &&
+        sortedEntries.length === 0 && (
+          <div className="empty-state">
+            <h2>No calendar entries</h2>
+            <p>
+              This university has not published any calendar dates yet
+              {hasActiveFilters ? " matching these filters" : ""}.
+            </p>
+          </div>
+        )}
 
-      {!loading && !error && sortedEntries.length > 0 && (
+      {!isLoading && !error && !validationError && sortedEntries.length > 0 && (
         <section className="calendar-list" aria-label="Calendar entries">
           {sortedEntries.map((entry, index) => (
             <article className="calendar-card" key={`${entry.date}-${entry.title}-${index}`}>

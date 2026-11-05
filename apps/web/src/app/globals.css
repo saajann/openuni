@@ -256,7 +256,7 @@ summary:focus-visible {
   font-size: 0.875rem;
 }
 
-select, input[type="text"] {
+select, input[type="text"], input[type="date"] {
   width: 100%;
   padding: 0.75rem 1rem;
   background-color: var(--bg-tertiary);
@@ -269,7 +269,7 @@ select, input[type="text"] {
   transition: border-color 0.2s ease;
 }
 
-select:focus, input[type="text"]:focus {
+select:focus, input[type="text"]:focus, input[type="date"]:focus {
   border-color: var(--accent-color);
 }
 
@@ -489,7 +489,59 @@ select:focus, input[type="text"]:focus {
 }
 
 .calendar-university-field {
+  margin-bottom: 1.25rem;
+}
+
+.calendar-filters {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.25rem;
+}
+
+.calendar-filters-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.calendar-filters-heading h2 {
+  font-size: 1rem;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--text-secondary);
+}
+
+.calendar-filter-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.calendar-filter-grid .form-group {
   margin-bottom: 0;
+}
+
+.field-error {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
 }
 
 .calendar-list {
@@ -606,6 +658,12 @@ select:focus, input[type="text"]:focus {
   .site-footer-inner {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
