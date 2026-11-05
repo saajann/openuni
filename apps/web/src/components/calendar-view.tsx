@@ -64,11 +64,16 @@ function formatDate(date: string) {
   }).format(new Date(`${date}T00:00:00`));
 }
 
-function formatDateRange(entry: CalendarEntry) {
-  if (!entry.end_date || entry.end_date === entry.date) {
-    return formatDate(entry.date);
-  }
-  return `${formatDate(entry.date)} – ${formatDate(entry.end_date)}`;
+function formatDay(date: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+  }).format(new Date(`${date}T00:00:00`));
+}
+
+function formatMonth(date: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+  }).format(new Date(`${date}T00:00:00`));
 }
 
 export function CalendarView() {
@@ -314,24 +319,55 @@ export function CalendarView() {
         )}
 
       {!isLoading && !error && !validationError && sortedEntries.length > 0 && (
-        <section className="calendar-list" aria-label="Calendar entries">
-          {sortedEntries.map((entry, index) => (
-            <article className="calendar-card" key={`${entry.date}-${entry.title}-${index}`}>
-              <div className="calendar-card-meta">
-                <span className={`calendar-type calendar-type-${entry.type}`}>
-                  {typeLabels[entry.type]}
-                </span>
-                <time dateTime={entry.date}>{formatDateRange(entry)}</time>
-              </div>
-              <h2>{entry.title}</h2>
-              {entry.description && <p>{entry.description}</p>}
-              {entry.source_url && (
-                <a href={entry.source_url} target="_blank" rel="noreferrer">
-                  View official source <span aria-hidden="true">↗</span>
-                </a>
-              )}
-            </article>
-          ))}
+        <section className="calendar-agenda" aria-labelledby="calendar-agenda-heading">
+          <div className="calendar-agenda-heading">
+            <div>
+              <p className="calendar-eyebrow">STAY ORGANIZED</p>
+              <h2 id="calendar-agenda-heading">Academic agenda</h2>
+            </div>
+            <span className="calendar-event-count">
+              {sortedEntries.length} {sortedEntries.length === 1 ? "event" : "events"}
+            </span>
+          </div>
+
+          <ol className="calendar-agenda-list">
+            {sortedEntries.map((entry, index) => (
+              <li className="calendar-agenda-item" key={`${entry.date}-${entry.title}-${index}`}>
+                <div className="calendar-date-marker" aria-hidden="true">
+                  <span className="calendar-date-day">{formatDay(entry.date)}</span>
+                  <span className="calendar-date-month">{formatMonth(entry.date)}</span>
+                </div>
+
+                <article className={`calendar-card calendar-card-${entry.type}`}>
+                  <div className="calendar-card-meta">
+                    <span className={`calendar-type calendar-type-${entry.type}`}>
+                      {typeLabels[entry.type]}
+                    </span>
+
+                    {entry.end_date && entry.end_date !== entry.date ? (
+                      <span className="calendar-range">
+                        <time dateTime={entry.date}>{formatDate(entry.date)}</time>
+                        <span aria-hidden="true"> – </span>
+                        <span className="sr-only">to</span>
+                        <time dateTime={entry.end_date}>{formatDate(entry.end_date)}</time>
+                      </span>
+                    ) : (
+                      <time dateTime={entry.date}>{formatDate(entry.date)}</time>
+                    )}
+                  </div>
+
+                  <h3>{entry.title}</h3>
+                  {entry.description && <p>{entry.description}</p>}
+                  {entry.source_url && (
+                    <a href={entry.source_url} target="_blank" rel="noopener noreferrer">
+                      View official source <span aria-hidden="true">↗</span>
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  )}
+                </article>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
     </main>

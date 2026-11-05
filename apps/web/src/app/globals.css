@@ -10,6 +10,10 @@
   --error-color: #ef4444;
   --focus-ring: rgba(59, 130, 246, 0.5);
   --success-color: #10b981;
+  --calendar-exam: #60a5fa;
+  --calendar-deadline: #f87171;
+  --calendar-holiday: #34d399;
+  --calendar-event: #c084fc;
 }
 
 * {
@@ -227,6 +231,18 @@ select:focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 /* Form Elements */
@@ -544,45 +560,157 @@ select:focus, input[type="text"]:focus, input[type="date"]:focus {
   margin-top: 0.75rem;
 }
 
-.calendar-list {
+.calendar-agenda {
+  animation: fadeIn 0.4s ease;
+}
+
+.calendar-agenda-heading {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.calendar-agenda-heading h2 {
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.calendar-eyebrow {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.35rem;
+}
+
+.calendar-event-count {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+}
+
+.calendar-agenda-list {
   display: grid;
   gap: 1rem;
-  animation: fadeIn 0.4s ease;
+  list-style: none;
+  position: relative;
+}
+
+.calendar-agenda-list::before {
+  background: var(--border-color);
+  bottom: 0.75rem;
+  content: "";
+  left: 1.75rem;
+  position: absolute;
+  top: 0.75rem;
+  width: 1px;
+}
+
+.calendar-agenda-item {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+}
+
+.calendar-date-marker {
+  align-items: center;
+  align-self: start;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.55rem 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.calendar-date-day {
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.calendar-date-month {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
 }
 
 .calendar-card {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
+  border-left-width: 3px;
   border-radius: 12px;
+  min-width: 0;
   padding: 1.25rem;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .calendar-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--text-secondary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  transform: translateY(-1px);
+}
+
+.calendar-card-exam {
+  border-left-color: var(--calendar-exam);
+}
+
+.calendar-card-deadline {
+  border-left-color: var(--calendar-deadline);
+}
+
+.calendar-card-holiday {
+  border-left-color: var(--calendar-holiday);
+}
+
+.calendar-card-event {
+  border-left-color: var(--calendar-event);
 }
 
 .calendar-card-meta {
-  display: flex;
   align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   justify-content: space-between;
-  gap: 1rem;
   margin-bottom: 0.75rem;
 }
 
-.calendar-card time {
+.calendar-card time,
+.calendar-range {
   color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
-.calendar-card h2 {
+.calendar-range {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+}
+
+.calendar-card h3 {
   font-size: 1.15rem;
   margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
 }
 
 .calendar-card p {
   font-size: 0.925rem;
+  overflow-wrap: anywhere;
 }
 
 .calendar-card a {
@@ -591,6 +719,7 @@ select:focus, input[type="text"]:focus, input[type="date"]:focus {
   font-size: 0.875rem;
   font-weight: 500;
   margin-top: 0.85rem;
+  overflow-wrap: anywhere;
   text-decoration: none;
 }
 
@@ -609,22 +738,22 @@ select:focus, input[type="text"]:focus, input[type="date"]:focus {
 
 .calendar-type-exam {
   background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
+  color: var(--calendar-exam);
 }
 
 .calendar-type-deadline {
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: var(--calendar-deadline);
 }
 
 .calendar-type-holiday {
   background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  color: var(--calendar-holiday);
 }
 
 .calendar-type-event {
   background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
+  color: var(--calendar-event);
 }
 
 .empty-state {
@@ -668,6 +797,32 @@ select:focus, input[type="text"]:focus, input[type="date"]:focus {
 }
 
 @media (max-width: 520px) {
+  .calendar-agenda-list::before {
+    display: none;
+  }
+
+  .calendar-agenda-item {
+    gap: 0.5rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calendar-date-marker {
+    background: transparent;
+    border: none;
+    flex-direction: row;
+    gap: 0.4rem;
+    justify-content: flex-start;
+    padding: 0;
+  }
+
+  .calendar-date-day {
+    font-size: 1rem;
+  }
+
+  .calendar-date-month {
+    margin-top: 0;
+  }
+
   .calendar-card-meta {
     align-items: flex-start;
     flex-direction: column;
