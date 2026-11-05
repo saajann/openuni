@@ -165,14 +165,54 @@ describe("CalendarView", () => {
     expect(screen.getByLabelText("Entry type")).toBeInTheDocument();
   });
 
-  it("renders the returned entries", async () => {
+  it("renders the returned entries as a chronological agenda", async () => {
     vi.mocked(getCalendar).mockResolvedValue([
-      makeCalendarEntry({ title: "Summer exam", date: "2026-06-15" }),
+      makeCalendarEntry({ title: "Later event", date: "2026-07-01" }),
+      makeCalendarEntry({
+        title: "Exam week",
+        date: "2026-06-10",
+        end_date: "2026-06-24",
+      }),
+      makeCalendarEntry({ title: "Deadline", date: "2026-06-01", type: "deadline" }),
     ]);
 
     renderWithProviders(<CalendarView />);
 
-    expect(await screen.findByText("Summer exam")).toBeInTheDocument();
-    expect(screen.getByText("June 15, 2026")).toBeInTheDocument();
+    const headings = await screen.findAllByRole("heading", { level: 3 });
+    expect(headings.map((heading) => heading.textContent)).toEqual([
+      "Deadline",
+      "Exam week",
+      "Later event",
+    ]);
+    expect(screen.getByText("3 events")).toBeInTheDocument();
+    expect(screen.getByText("June 10, 2026")).toBeInTheDocument();
+    expect(screen.getByText("June 24, 2026")).toBeInTheDocument();
+  });
+
+  it("only renders safe external links for entries that provide a source", async () => {
+    vi.mocked(getCalendar).mockResolvedValue([
+      makeCalendarEntry({
+        title: "With source",
+        source_url: "https://example.edu/calendar",
+      }),
+      makeCalendarEntry({ title: "Without source", source_url: null }),
+    ]);
+
+    renderWithProviders(<CalendarView />);
+
+    const link = await screen.findByRole("link", { name: /View official source/ });
+    expect(link).toHaveAttribute("href", "https://example.edu/calendar");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(link).toHaveAccessibleName(/opens in a new tab/);
+    expect(screen.getAllByRole("link", { name: /View official source/ })).toHaveLength(1);
+  });
+
+  it("shows the empty state when no entries match", async () => {
+    renderWithProviders(<CalendarView />);
+
+    expect(
+      await screen.findByRole("heading", { name: "No calendar entries" })
+    ).toBeInTheDocument();
   });
 });
