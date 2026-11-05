@@ -31,6 +31,11 @@ keyboard-accessible links to **Ask** (`/`) and **Calendar** (`/calendar`), a com
 footer, page metadata and a skip link. Route pages stay server components that export
 metadata and render the interactive client views from `src/components`.
 
+The calendar supports shareable filters through the `type`, `from` and `to` query
+parameters, for example `/calendar?type=exam&from=2026-06-01&to=2026-06-30`. Only
+valid entry types and complete ISO dates are applied, and the URL is kept in sync
+whenever the filters change.
+
 ## Getting started
 
 Ensure the backend API is running locally (usually on port 8000). The frontend expects the backend URL to be defined in `.env`. The project root `.env.example` already includes `NEXT_PUBLIC_API_URL`.
