@@ -1,28 +1,98 @@
+@import "tailwindcss";
+
+/*
+ * OpenUni design tokens. Dark-first: the app ships a single dark theme.
+ * Components never use colour literals; they use the semantic names below.
+ * See apps/web/docs/design-system.md for usage and contrast ratios.
+ */
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111111;
-  --bg-tertiary: #1a1a1a;
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --accent-color: #3b82f6;
-  --accent-hover: #2563eb;
-  --border-color: #27272a;
-  --error-color: #ef4444;
-  --focus-ring: rgba(59, 130, 246, 0.5);
-  --success-color: #10b981;
+  color-scheme: dark;
+
+  /* Surfaces */
+  --background: #0a0a0a;
+  --surface: #111111;
+  --surface-raised: #1a1a1a;
+
+  /* Text */
+  --foreground: #fafafa;
+  --muted-foreground: #a1a1aa;
+  --link: #60a5fa;
+
+  /* Borders & focus */
+  --border: #27272a;
+  --input: #71717a; /* control boundaries need 3:1 (WCAG 1.4.11) */
+  --ring: #60a5fa;
+
+  /* Actions */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+
+  /* Status */
+  --success: #34d399;
+  --destructive: #ef4444;
+  --destructive-foreground: #f87171;
+
+  /* Calendar categories (text colour; 15% tint is used as the background) */
+  --cal-exam: #60a5fa;
+  --cal-deadline: #f87171;
+  --cal-holiday: #34d399;
+  --cal-event: #c084fc;
+
+  --shadow-raised: 0 4px 20px color-mix(in oklab, black 20%, transparent);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-link: var(--link);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-success: var(--success);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-cal-exam: var(--cal-exam);
+  --color-cal-deadline: var(--cal-deadline);
+  --color-cal-holiday: var(--cal-holiday);
+  --color-cal-event: var(--cal-event);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  /* One keyboard-focus indicator for every interactive element. */
+  :where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * Legacy page rules, still used by the shell, chat and calendar screens.
+ * They live in the components layer so Tailwind utilities always win, and are
+ * to be deleted as each screen moves onto the shared primitives.
+ */
+@layer components {
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -34,13 +104,13 @@ h1 {
   font-weight: 700;
   letter-spacing: -0.025em;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+  background: linear-gradient(135deg, var(--foreground) 0%, var(--muted-foreground) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 p {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
 }
 
 /* Layout */
@@ -74,9 +144,9 @@ p {
 
 /* App shell */
 .skip-link {
-  background: var(--accent-color);
+  background: var(--primary);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--primary-foreground);
   font-weight: 600;
   left: 1rem;
   padding: 0.65rem 1rem;
@@ -90,8 +160,8 @@ p {
 }
 
 .site-header {
-  background: rgba(10, 10, 10, 0.92);
-  border-bottom: 1px solid var(--border-color);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -112,7 +182,7 @@ p {
 
 .brand {
   align-items: center;
-  color: var(--text-primary);
+  color: var(--foreground);
   display: inline-flex;
   gap: 0.7rem;
   min-width: 0;
@@ -121,8 +191,8 @@ p {
 
 .brand-mark {
   align-items: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 9px;
   display: inline-flex;
   flex: 0 0 auto;
@@ -148,7 +218,7 @@ p {
 }
 
 .brand-tagline {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.72rem;
   line-height: 1.35;
 }
@@ -162,7 +232,7 @@ p {
 .site-nav-link {
   border: 1px solid transparent;
   border-radius: 999px;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0.45rem 0.85rem;
@@ -174,24 +244,24 @@ p {
 }
 
 .site-nav-link:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: var(--surface-raised);
+  color: var(--foreground);
 }
 
 .site-nav-link[aria-current="page"] {
-  background: var(--bg-tertiary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 .site-footer {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border);
   margin-top: 3rem;
 }
 
 .site-footer-inner {
   align-items: center;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   display: flex;
   flex-wrap: wrap;
   font-size: 0.78rem;
@@ -205,100 +275,38 @@ p {
 
 .site-footer-brand {
   align-items: center;
-  color: var(--text-primary);
+  color: var(--foreground);
   display: inline-flex;
   font-weight: 600;
   gap: 0.5rem;
 }
 
 .status-dot {
-  background: var(--success-color);
+  background: var(--success);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 15%, transparent);
   display: inline-block;
   height: 0.45rem;
   width: 0.45rem;
 }
 
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-summary:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-}
-
 /* Form Elements */
 .search-form {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-raised);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-form:focus-within {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 4px var(--focus-ring);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 50%, transparent);
 }
 
 .form-group {
   margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-select, input[type="text"] {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-select:focus, input[type="text"]:focus {
-  border-color: var(--accent-color);
-}
-
-.btn-primary {
-  background-color: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.btn-primary:hover {
-  background-color: var(--accent-hover);
-}
-
-.btn-primary:active {
-  transform: scale(0.98);
-}
-
-.btn-primary:disabled {
-  background-color: var(--border-color);
-  color: var(--text-secondary);
-  cursor: not-allowed;
-  transform: none;
 }
 
 /* Loading State */
@@ -314,8 +322,8 @@ select:focus, input[type="text"]:focus {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-color);
-  border-top-color: var(--accent-color);
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -337,8 +345,8 @@ select:focus, input[type="text"]:focus {
 }
 
 .answer-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -357,20 +365,20 @@ select:focus, input[type="text"]:focus {
 .answer-card h2 {
   font-size: 1.25rem;
   margin-bottom: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .answer-source-count {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.8rem;
   font-weight: 500;
 }
 
 .answer-text p {
-  color: var(--text-primary);
+  color: var(--foreground);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
@@ -380,13 +388,13 @@ select:focus, input[type="text"]:focus {
 }
 
 .answer-empty {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-style: italic;
 }
 
 .sources-section h3 {
   align-items: baseline;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   display: flex;
   font-size: 1.1rem;
   gap: 0.5rem;
@@ -394,10 +402,10 @@ select:focus, input[type="text"]:focus {
 }
 
 .source-count {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -411,15 +419,15 @@ select:focus, input[type="text"]:focus {
 }
 
 .source-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1rem 1.1rem;
   transition: border-color 0.2s ease;
 }
 
 .source-card:hover {
-  border-color: var(--text-secondary);
+  border-color: var(--muted-foreground);
 }
 
 .source-meta {
@@ -430,20 +438,20 @@ select:focus, input[type="text"]:focus {
 }
 
 .source-index {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 
 .source-title {
-  color: var(--accent-color);
+  color: var(--link);
   font-size: 0.875rem;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .source-snippet {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   line-height: 1.6;
   margin: 0;
@@ -452,27 +460,11 @@ select:focus, input[type="text"]:focus {
 }
 
 .sources-empty {
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
+  background: var(--surface);
+  border: 1px dashed var(--border);
   border-radius: 8px;
   font-size: 0.9rem;
   padding: 1rem;
-}
-
-/* Error State */
-.error-message {
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid var(--error-color);
-  color: var(--error-color);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-top: 1.5rem;
-  text-align: center;
-  animation: fadeIn 0.3s ease;
-}
-
-.retry-button {
-  margin-top: 0.75rem;
 }
 
 /* Academic Calendar */
@@ -481,8 +473,8 @@ select:focus, input[type="text"]:focus {
 }
 
 .calendar-controls {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -499,8 +491,8 @@ select:focus, input[type="text"]:focus {
 }
 
 .calendar-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -508,7 +500,7 @@ select:focus, input[type="text"]:focus {
 
 .calendar-card:hover {
   transform: translateY(-2px);
-  border-color: var(--text-secondary);
+  border-color: var(--muted-foreground);
 }
 
 .calendar-card-meta {
@@ -520,7 +512,8 @@ select:focus, input[type="text"]:focus {
 }
 
 .calendar-card time {
-  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
 }
 
@@ -534,7 +527,7 @@ select:focus, input[type="text"]:focus {
 }
 
 .calendar-card a {
-  color: var(--accent-color);
+  color: var(--link);
   display: inline-block;
   font-size: 0.875rem;
   font-weight: 500;
@@ -546,38 +539,9 @@ select:focus, input[type="text"]:focus {
   text-decoration: underline;
 }
 
-.calendar-type {
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-  padding: 0.25rem 0.6rem;
-  text-transform: uppercase;
-}
-
-.calendar-type-exam {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-}
-
-.calendar-type-deadline {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-}
-
-.calendar-type-holiday {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-}
-
-.calendar-type-event {
-  background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
-}
-
 .empty-state {
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
+  background: var(--surface);
+  border: 1px dashed var(--border);
   border-radius: 12px;
   padding: 3rem 1.5rem;
   text-align: center;
@@ -615,4 +579,5 @@ select:focus, input[type="text"]:focus {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
 }

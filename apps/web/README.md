@@ -16,11 +16,15 @@ apps/web/
 ├── src/
 │   ├── app/             # Next.js App Router pages & layouts
 │   ├── components/      # Shared shell, chat workspace and calendar view
+│   │   └── ui/          # shadcn/ui primitives (Button, Input, Select, …)
 │   ├── lib/             # API client, utilities, types
 │   ├── test/            # Vitest setup, fixtures and render helpers
-│   └── app/globals.css  # Global CSS / design tokens
+│   └── app/globals.css  # Tailwind import, design tokens, legacy page rules
+├── docs/                # design-system.md: tokens, typography, conventions
+├── components.json      # shadcn/ui configuration
 ├── public/              # Static assets
 ├── next.config.ts
+├── postcss.config.mjs   # Tailwind v4 PostCSS plugin
 ├── package.json
 ├── vitest.config.mts
 └── README.md            # ← you are here
@@ -30,6 +34,10 @@ The root layout provides the shared OpenUni shell: a branded header with
 keyboard-accessible links to **Ask** (`/`) and **Calendar** (`/calendar`), a compact
 footer, page metadata and a skip link. Route pages stay server components that export
 metadata and render the interactive client views from `src/components`.
+
+Styling uses Tailwind CSS v4 with shadcn/ui primitives and semantic dark-first design
+tokens. Read [`docs/design-system.md`](docs/design-system.md) before adding UI: use
+the tokens and `src/components/ui` primitives, and no colour literals.
 
 ## Getting started
 

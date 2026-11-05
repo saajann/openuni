@@ -1,6 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { sendChatMessage, ChatResponse, getUniversities } from "@/lib/api";
 
 interface ChatRequest {
@@ -93,8 +98,8 @@ export function ChatWorkspace() {
 
       <form className="search-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="university">University</label>
-          <select
+          <Label htmlFor="university">University</Label>
+          <Select
             id="university"
             value={university}
             onChange={(e) => setUniversity(e.target.value)}
@@ -105,13 +110,12 @@ export function ChatWorkspace() {
                 {uni.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="form-group">
-          <label htmlFor="question">What do you want to know?</label>
-          <input
-            type="text"
+          <Label htmlFor="question">What do you want to know?</Label>
+          <Input
             id="question"
             placeholder="e.g. What are the admission requirements for Computer Science?"
             value={question}
@@ -121,24 +125,19 @@ export function ChatWorkspace() {
           />
         </div>
 
-        <button type="submit" className="btn-primary" disabled={loading || !question.trim()}>
+        <Button type="submit" block disabled={loading || !question.trim()}>
           {loading ? "Searching..." : "Ask Question"}
-        </button>
+        </Button>
 
         {error && (
-          <div className="error-message" role="alert">
-            <p>{error}</p>
+          <Alert className="mt-6">
+            <p className="text-destructive-foreground">{error}</p>
             {failedRequest && (
-              <button
-                type="button"
-                className="btn-primary retry-button"
-                onClick={handleRetry}
-                disabled={loading}
-              >
+              <Button type="button" block className="mt-3" onClick={handleRetry} disabled={loading}>
                 Try again
-              </button>
+              </Button>
             )}
-          </div>
+          </Alert>
         )}
       </form>
 
