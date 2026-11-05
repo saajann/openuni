@@ -19,6 +19,12 @@ export interface CalendarEntry {
   source_url: string | null;
 }
 
+export interface CalendarFilters {
+  type?: CalendarEntryType;
+  from?: string;
+  to?: string;
+}
+
 export async function sendChatMessage(
   university: string,
   question: string
@@ -47,9 +53,22 @@ export async function getUniversities(): Promise<{ slug: string; name: string }[
   return res.json();
 }
 
-export async function getCalendar(university: string): Promise<CalendarEntry[]> {
+export async function getCalendar(
+  university: string,
+  filters: CalendarFilters = {}
+): Promise<CalendarEntry[]> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-  const res = await fetch(`${baseUrl}/universities/${encodeURIComponent(university)}/calendar`);
+  const params = new URLSearchParams();
+
+  if (filters.type) params.set("type", filters.type);
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+
+  const query = params.toString();
+  const url = `${baseUrl}/universities/${encodeURIComponent(university)}/calendar${
+    query ? `?${query}` : ""
+  }`;
+  const res = await fetch(url);
 
   if (!res.ok) {
     const detail = await res.json().catch(() => null);

@@ -148,6 +148,38 @@ describe("api client", () => {
       );
     });
 
+    it("adds only the filters that are present", async () => {
+      fetchMock.mockResolvedValue(jsonResponse([]));
+
+      await getCalendar("polimi", { type: "exam", from: "2026-06-01" });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${TEST_BASE_URL}/universities/polimi/calendar?type=exam&from=2026-06-01`
+      );
+    });
+
+    it("adds a complete filter set in a stable order", async () => {
+      fetchMock.mockResolvedValue(jsonResponse([]));
+
+      await getCalendar("polimi", {
+        type: "deadline",
+        from: "2026-05-01",
+        to: "2026-05-31",
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${TEST_BASE_URL}/universities/polimi/calendar?type=deadline&from=2026-05-01&to=2026-05-31`
+      );
+    });
+
+    it("omits the query string when filters are empty", async () => {
+      fetchMock.mockResolvedValue(jsonResponse([]));
+
+      await getCalendar("polimi", { type: undefined, from: "", to: undefined });
+
+      expect(fetchMock).toHaveBeenCalledWith(`${TEST_BASE_URL}/universities/polimi/calendar`);
+    });
+
     it("throws the `detail` message from a JSON error body", async () => {
       fetchMock.mockResolvedValue(jsonResponse({ detail: "Calendar not found" }, { status: 404 }));
 
