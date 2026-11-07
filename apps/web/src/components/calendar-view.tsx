@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import {
   CalendarEntry,
   CalendarEntryType,
@@ -104,8 +108,8 @@ export function CalendarView() {
 
       <section className="calendar-controls" aria-label="Calendar settings">
         <div className="form-group calendar-university-field">
-          <label htmlFor="university">University</label>
-          <select
+          <Label htmlFor="university">University</Label>
+          <Select
             id="university"
             value={university}
             onChange={(event) => setUniversity(event.target.value)}
@@ -116,7 +120,7 @@ export function CalendarView() {
                 {uni.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </section>
 
@@ -128,9 +132,7 @@ export function CalendarView() {
       )}
 
       {error && !loading && (
-        <div className="error-message" role="alert">
-          {error}
-        </div>
+        <Alert className="mt-6">{error}</Alert>
       )}
 
       {!loading && !error && university && sortedEntries.length === 0 && (
@@ -145,9 +147,7 @@ export function CalendarView() {
           {sortedEntries.map((entry, index) => (
             <article className="calendar-card" key={`${entry.date}-${entry.title}-${index}`}>
               <div className="calendar-card-meta">
-                <span className={`calendar-type calendar-type-${entry.type}`}>
-                  {typeLabels[entry.type]}
-                </span>
+                <Badge variant={entry.type}>{typeLabels[entry.type]}</Badge>
                 <time dateTime={entry.date}>{formatDateRange(entry)}</time>
               </div>
               <h2>{entry.title}</h2>
