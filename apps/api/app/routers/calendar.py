@@ -48,9 +48,11 @@ async def get_calendar(
     """Academic calendar for a specific university.
 
     1. Validates ``slug`` against the loaded registry — **404** if unknown.
-    2. Loads ``universities/<slug>/calendar.yaml`` — an absent file yields an
+    2. Rejects an inverted ``from``/``to`` range — **422** when both bounds are
+       supplied and ``from`` is later than ``to``.
+    3. Loads ``universities/<slug>/calendar.yaml`` — an absent file yields an
        empty list.
-    3. Applies the optional ``type`` and ``from``/``to`` filters; a multi-day
+    4. Applies the optional ``type`` and ``from``/``to`` filters; a multi-day
        entry matches when its ``[date, end_date]`` range overlaps the
        requested bounds.
     """
@@ -62,6 +64,13 @@ async def get_calendar(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"University '{slug}' not found.",
         ) from e
+
+    # ── Validate the requested range ──────────────────────────────────────────
+    if from_date is not None and to_date is not None and from_date > to_date:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="'from' must be on or before 'to'.",
+        )
 
     entries = load_calendar_entries(slug)
 
