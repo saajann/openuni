@@ -145,6 +145,13 @@ at the repo root for the full list with descriptions.
 | GET    | `/docs`                         | Swagger UI (development mode only)                                              |
 | GET    | `/redoc`                        | ReDoc (development mode only)                                                   |
 
+For `GET /universities/{slug}/calendar`, the optional filters are `type`, `from`, and `to`:
+
+- **200**: calendar entries matching the filters, or an empty list if none match or no calendar file exists.
+- **404**: unknown university, when the `type` and date values are valid.
+- **422**: `type` is not `exam`, `deadline`, `holiday`, or `event`; a date value cannot be parsed;
+  or, for a known university, `from` is later than `to`.
+
 ---
 
 ## Concurrency
