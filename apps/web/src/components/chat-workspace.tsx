@@ -84,6 +84,13 @@ export function ChatWorkspace() {
     void submitRequest({ university, question });
   };
 
+  const handleUniversityChange = (nextUniversity: string) => {
+    setUniversity(nextUniversity);
+    if (nextUniversity !== university) {
+      setResponse(null);
+    }
+  };
+
   const handleRetry = () => {
     if (!failedRequest) return;
     void submitRequest(failedRequest);
@@ -102,7 +109,7 @@ export function ChatWorkspace() {
           <Select
             id="university"
             value={university}
-            onChange={(e) => setUniversity(e.target.value)}
+            onChange={(e) => handleUniversityChange(e.target.value)}
             disabled={loading}
           >
             {universities.map((uni) => (

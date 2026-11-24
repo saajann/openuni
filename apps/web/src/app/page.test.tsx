@@ -216,4 +216,32 @@ describe("ChatWorkspace", () => {
     expect(screen.getByText("2 sources cited")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "calendar.pdf" })).not.toBeInTheDocument();
   });
+
+  it("clears the previous answer and sources when the university changes", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getUniversities).mockResolvedValue([
+      ...demoUniversities,
+      { slug: "other", name: "Other University" },
+    ]);
+    vi.mocked(sendChatMessage).mockResolvedValue(makeChatResponse());
+
+    renderWithProviders(<ChatWorkspace />);
+
+    await screen.findByRole("option", { name: "Other University" });
+    const questionInput = screen.getByLabelText("What do you want to know?");
+    await user.type(questionInput, "When is the exam?");
+    await user.click(screen.getByRole("button", { name: "Ask Question" }));
+
+    expect(await screen.findByRole("heading", { name: "Answer" })).toBeInTheDocument();
+    expect(screen.getByText("calendar.pdf")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("University"), "other");
+
+    expect(screen.queryByRole("heading", { name: "Answer" })).not.toBeInTheDocument();
+    expect(screen.queryByText("The exam is in June.")).not.toBeInTheDocument();
+    expect(screen.queryByText("calendar.pdf")).not.toBeInTheDocument();
+    expect(screen.queryByText("Exams run in June.")).not.toBeInTheDocument();
+    expect(questionInput).toHaveValue("When is the exam?");
+    expect(sendChatMessage).toHaveBeenCalledTimes(1);
+  });
 });
