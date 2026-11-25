@@ -28,7 +28,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 
-from openai import OpenAI
+from openai import APIError, OpenAI
 
 from app.core.config import Settings, get_settings
 from app.rag.retrieval import RetrievedChunk
@@ -66,6 +66,10 @@ Rules you MUST follow:
 """
 
 _CONTEXT_BLOCK_TEMPLATE = "--- Passage [{index}] (source: {source}) ---\n{text}\n"
+
+
+class LLMProviderUnavailable(RuntimeError):
+    """Raised when the configured LLM provider cannot serve a request."""
 
 
 # ── Data models ───────────────────────────────────────────────────────────────
@@ -229,15 +233,24 @@ def generate_answer(
         len(chunks),
     )
 
-    response = resolved_client.chat.completions.create(
-        model=resolved_model,
-        messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": user_message},
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.0,  # deterministic; citations must be grounded
-    )
+    try:
+        response = resolved_client.chat.completions.create(
+            model=resolved_model,
+            messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.0,  # deterministic; citations must be grounded
+        )
+    except APIError as exc:
+        logger.warning(
+            "LLM provider request failed (provider=%s model=%s): %s",
+            settings.llm_provider,
+            resolved_model,
+            exc,
+        )
+        raise LLMProviderUnavailable("LLM provider request failed.") from exc
 
     raw_content: str = response.choices[0].message.content or ""
     return _parse_llm_response(raw_content)

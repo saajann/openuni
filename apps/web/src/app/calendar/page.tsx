@@ -1,20 +1,14 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  CalendarEntry,
-  CalendarEntryType,
-  getCalendar,
-  getUniversities,
-} from "@/lib/api";
+import { CalendarView } from "@/components/calendar-view";
 
-const typeLabels: Record<CalendarEntryType, string> = {
-  exam: "Exam",
-  deadline: "Deadline",
-  holiday: "Holiday",
-  event: "Event",
+export const metadata: Metadata = {
+  title: "Academic Calendar",
+  description:
+    "Browse exams, deadlines, holidays and university events in chronological order.",
 };
 
+redesign-academic-calendar
 function formatDate(date: string) {
   return new Intl.DateTimeFormat(undefined, {
     day: "numeric",
@@ -258,4 +252,8 @@ export default function CalendarPage() {
       )}
     </main>
   );
+
+export default function CalendarPage() {
+  return <CalendarView />;
+  main
 }

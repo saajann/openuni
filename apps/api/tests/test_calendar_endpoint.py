@@ -197,3 +197,43 @@ def test_calendar_invalid_date_returns_422(
     response = client.get("/universities/demo/calendar", params={"from": "not-a-date"})
 
     assert response.status_code == 422
+
+
+def test_calendar_inverted_range_returns_422(
+    client: TestClient, demo_calendar: list[CalendarEntry]
+) -> None:
+    """?from= later than ?to= is rejected instead of yielding an empty calendar."""
+    response = client.get(
+        "/universities/demo/calendar",
+        params={"from": "2026-12-31", "to": "2026-01-01"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "'from' must be on or before 'to'."
+
+
+def test_calendar_equal_bounds_return_entries(
+    client: TestClient, demo_calendar: list[CalendarEntry]
+) -> None:
+    """from == to is a valid single-day range and must keep working."""
+    response = client.get(
+        "/universities/demo/calendar",
+        params={"from": "2026-09-01", "to": "2026-09-01"},
+    )
+
+    assert response.status_code == 200
+    titles = [entry["title"] for entry in response.json()]
+    assert titles == ["Tuition payment deadline"]
+
+
+def test_calendar_unknown_university_wins_over_inverted_range(
+    client: TestClient, demo_calendar: list[CalendarEntry]
+) -> None:
+    """Slug validation keeps precedence: an unknown slug is 404 even with a bad range."""
+    response = client.get(
+        "/universities/nonexistent-uni/calendar",
+        params={"from": "2026-12-31", "to": "2026-01-01"},
+    )
+
+    assert response.status_code == 404
+    assert "nonexistent-uni" in response.json()["detail"]

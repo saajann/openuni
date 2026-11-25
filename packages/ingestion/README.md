@@ -10,27 +10,28 @@ This package contains the **offline ingestion pipeline** that turns raw universi
 - Upsert vectors into the vector store (e.g. Pinecone, Qdrant, pgvector).
 - Store document metadata (source URL, title, university slug, ingested-at timestamp).
 
-## Planned structure
+## Project structure
 
 ```
 packages/ingestion/
 ├── ingestion/
-│   ├── crawlers/        # Per-source scrapers / downloaders
-│   ├── parsers/         # PDF, HTML, and structured-data parsers
-│   ├── chunkers/        # Text splitting strategies
-│   ├── embedders/       # Embedding model wrappers
-│   └── vector_store/    # Vector DB client abstraction
-├── scripts/             # CLI entry-points (e.g. `ingest.py --university demo`)
-├── tests/
+│   ├── chunking/        # Text splitting strategies (text_splitter.py)
+│   ├── embeddings/      # Ollama embedding model client (ollama.py)
+│   ├── loaders/         # Local document loader for pdf, txt, md (local.py)
+│   ├── vector_store/    # Qdrant client & collection management (qdrant.py)
+│   └── cli.py           # Ingestion CLI entrypoint
+├── tests/               # Unit tests for chunking, embeddings, loaders, vector store
 ├── pyproject.toml
 └── README.md            # ← you are here
 ```
 
-## Getting started (coming soon)
+## Getting started
 
 ```bash
 cd packages/ingestion
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-python scripts/ingest.py --university demo
+
+# Run ingestion for a university (e.g. demo)
+python -m ingestion.cli --university demo
 ```

@@ -3,7 +3,7 @@ from typing import Any
 
 import httpx
 from qdrant_client import QdrantClient
-from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
 from app.core.config import get_settings
 from app.core.universities import get_university
@@ -16,13 +16,20 @@ class RetrievedChunk:
     score: float
 
 
+class RetrievalUnavailable(RuntimeError):
+    """An upstream dependency of retrieval could not answer the request."""
+
+
 def _embed_question(question: str, ollama_url: str, model: str) -> list[float]:
-    response = httpx.post(
-        f"{ollama_url.rstrip('/')}/api/embeddings",
-        json={"model": model, "prompt": question},
-        timeout=30.0,
-    )
-    response.raise_for_status()
+    try:
+        response = httpx.post(
+            f"{ollama_url.rstrip('/')}/api/embeddings",
+            json={"model": model, "prompt": question},
+            timeout=30.0,
+        )
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise RetrievalUnavailable("Embedding service request failed.") from exc
     data = response.json()
     if not isinstance(data, dict):
         raise ValueError("Embedding response was not a JSON object.")
@@ -65,7 +72,13 @@ def retrieve_chunks(university_slug: str, question: str, top_k: int = 5) -> list
     except UnexpectedResponse as exc:
         if exc.status_code == 404:
             return []
-        raise
+        raise RetrievalUnavailable("Vector store request failed.") from exc
+    except ResponseHandlingException as exc:
+        raise RetrievalUnavailable("Vector store request failed.") from exc
+    except httpx.HTTPError as exc:
+        raise RetrievalUnavailable("Vector store request failed.") from exc
+    finally:
+        qdrant.close()
     points = result.points
 
     chunks: list[RetrievedChunk] = []

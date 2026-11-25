@@ -17,12 +17,11 @@ This package contains the **OpenUni REST API**, built with [FastAPI](https://fas
 apps/api/
 ├── app/
 │   ├── main.py          # FastAPI application entry-point & route definitions
-│   ├── core/
-│   │   └── config.py    # Pydantic-Settings config (reads env vars)
-│   ├── routers/         # Route handlers (chat, search, health, …) — coming soon
-│   ├── services/        # Business logic (RAG pipeline, LLM calls, …) — coming soon
-│   └── models/          # Pydantic request/response schemas — coming soon
-├── tests/
+│   ├── core/            # App configuration (settings, calendar utilities, university loader)
+│   ├── models/          # Pydantic request/response schemas (chat, calendar, university)
+│   ├── rag/             # RAG pipeline implementation (retrieval, generation)
+│   └── routers/         # API route handlers (chat, calendar)
+├── tests/               # Unit & integration test suite
 ├── Dockerfile
 ├── pyproject.toml
 └── README.md            # ← you are here
@@ -48,12 +47,14 @@ cp .env.example .env
 docker compose -f infra/docker-compose.yml up --build
 ```
 
-That's it.  Three services will be running:
+That's it. Five services will be running:
 
 | Service  | URL                       | Notes                          |
 |----------|---------------------------|--------------------------------|
+| Web      | http://localhost:3000     | Next.js frontend               |
 | API      | http://localhost:8000     | FastAPI app; `/docs` for Swagger |
 | Qdrant   | http://localhost:6333     | Vector DB REST API & dashboard |
+| Ollama   | http://localhost:11434    | Local LLM / embedding service  |
 | Postgres | localhost:5432            | Use any Postgres client        |
 
 ### Verify the stack
@@ -62,7 +63,7 @@ That's it.  Three services will be running:
 # Liveness — should return {"status": "ok"}
 curl http://localhost:8000/health
 
-# Readiness — checks Postgres + Qdrant reachability
+# Readiness — checks Postgres + Qdrant + Ollama reachability
 curl http://localhost:8000/ready
 ```
 
@@ -134,13 +135,31 @@ at the repo root for the full list with descriptions.
 
 ## API endpoints
 
-| Method | Path      | Description                                      |
-|--------|-----------|--------------------------------------------------|
-| GET    | `/universities/{slug}/calendar` | Academic calendar entries; optional `type`, `from`, `to` filters |
-| GET    | `/health` | Liveness — always 200 if the process is running  |
-| GET    | `/ready`  | Readiness — 200 only when DB + Qdrant are reachable |
-| GET    | `/docs`   | Swagger UI (development mode only)              |
-| GET    | `/redoc`  | ReDoc (development mode only)                   |
+| Method | Path                            | Description                                                                     |
+|--------|---------------------------------|---------------------------------------------------------------------------------|
+| POST   | `/chat`                         | Send message to assistant; executes RAG retrieval and LLM generation            |
+| GET    | `/universities`                 | List onboarded universities (slug, name, locale, domain)                         |
+| GET    | `/universities/{slug}/calendar` | Academic calendar entries; optional `type`, `from`, `to` filters                |
+| GET    | `/health`                       | Liveness — 200 if the API process is running                                   |
+| GET    | `/ready`                        | Readiness — 200 when PostgreSQL, Qdrant, and Ollama are reachable (503 if down) |
+| GET    | `/docs`                         | Swagger UI (development mode only)                                              |
+| GET    | `/redoc`                        | ReDoc (development mode only)                                                   |
+
+---
+
+## Concurrency
+
+`POST /chat` is an `async` handler, but retrieval and generation use synchronous
+clients (`httpx`, `QdrantClient` and the OpenAI SDK). Both stages are executed with
+Starlette's `run_in_threadpool`, so slow embedding, vector-search or LLM calls do not
+block the event loop. `/health`, `/ready` and concurrent `/chat` requests stay
+responsive while a chat request is waiting on a provider.
+
+The retrieval and generation helpers remain synchronous and unchanged, which keeps
+the unit-test surface simple; only the router is responsible for moving them off the
+event loop. `tests/test_chat.py` includes a regression test that blocks retrieval in a
+worker thread and asserts that `/health` still responds before the chat request
+finishes.
 
 ---
 
@@ -165,6 +184,13 @@ No code changes or restarts beyond updating the env file are required.
 > consistently. The existing `_parse_llm_response` fallback in
 > `generation.py` will return the raw text if the response is not valid
 > JSON, so the app stays functional even with less reliable models.
+
+### Provider outages
+
+If the provider is unreachable, times out, rejects the model name, or rate limits
+the request, `/chat` returns **503** with
+`{"detail": "Answer generation is temporarily unavailable. Please try again shortly."}`.
+The underlying cause is logged server side and is never included in the response.
 
 ---
 

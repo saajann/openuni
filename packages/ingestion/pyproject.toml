@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=84.2.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,17 +9,17 @@ description = "Offline ingestion pipeline for OpenUni"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "qdrant-client>=1.7.0",
-    "PyMuPDF>=1.23.0",
-    "PyYAML>=6.0",
-    "httpx>=0.25.0",
-    "pydantic>=2.0.0",
+    "qdrant-client>=1.20.0",
+    "PyMuPDF>=1.28.2",
+    "PyYAML>=6.0.3",
+    "httpx>=0.28.1",
+    "pydantic>=2.14.3",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "ruff>=0.4.0",
+    "ruff>=0.17.5",
 ]
 
 # ─── Ruff (linter + formatter) ────────────────────────────────────────────────

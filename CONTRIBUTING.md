@@ -16,12 +16,15 @@ Please read this guide before opening an issue or pull request so your contribut
 5. [How to Open a Pull Request](#how-to-open-a-pull-request)
 6. [Code Style & Linting](#code-style--linting)
 7. [Repo Structure Cheatsheet](#repo-structure-cheatsheet)
+8. [Dependency Maintenance Policy](#dependency-maintenance-policy)
 
 ---
 
 ## Code of Conduct
 
-By participating you agree to abide by our [Code of Conduct](./CODE_OF_CONDUCT.md) (coming soon). In short: be kind, be constructive, and assume good faith.
+By participating you agree to abide by our [Code of Conduct](./CODE_OF_CONDUCT.md). In short: be kind, be constructive, and assume good faith.
+
+For reporting security issues or vulnerabilities, please refer to our [Security Policy](./SECURITY.md).
 
 ---
 
@@ -118,17 +121,45 @@ refactor(web): extract ChatMessage into shared component
 
 ## Code Style & Linting
 
-> ⚠️ **Placeholder — linting tooling is not yet configured.**  
-> This section will be updated once linters and formatters are set up for each sub-project.
+All code changes are automatically validated by GitHub Actions CI workflows (`ci-api.yml`, `ci-ingestion.yml`, and `ci-web.yml`). Please run the appropriate linters and test commands locally before pushing.
 
-### General expectations (applies now)
+### Python (`apps/api/`, `packages/ingestion/`)
 
-- **Python** (`apps/api/`, `packages/ingestion/`): follow [PEP 8](https://peps.python.org/pep-0008/). We plan to adopt **Ruff** for linting and formatting.
-- **TypeScript / JavaScript** (`apps/web/`): follow standard React/Next.js conventions. We plan to adopt **ESLint** + **Prettier**.
-- Avoid committing debug prints, commented-out code blocks, or TODO comments that belong in an issue.
-- All new public functions and modules should have docstrings / JSDoc comments.
+- Follow [PEP 8](https://peps.python.org/pep-0008/).
+- **Linting & Formatting:** Enforced with **Ruff**.
+  ```bash
+  ruff check .
+  ruff format --check .
+  # To automatically fix lint and formatting:
+  ruff check --fix .
+  ruff format .
+  ```
+- **Type Checking:** Enforced with **mypy** on `apps/api/`.
+  ```bash
+  mypy .
+  ```
+- **Testing:** Enforced with **pytest**.
+  ```bash
+  pytest
+  ```
 
-Once linting is configured, CI will enforce it automatically and PRs that fail lint checks will not be merged.
+### TypeScript / JavaScript (`apps/web/`)
+
+- Follow standard React and Next.js conventions.
+- **Linting:** Enforced with **ESLint**.
+  ```bash
+  npm run lint
+  ```
+- **Build verification:** Enforced with Next.js build.
+  ```bash
+  npm run build
+  ```
+
+### General expectations
+
+- Avoid committing debug prints, commented-out code blocks, or temporary files.
+- All new public functions and modules should have docstrings or JSDoc comments.
+- Pull requests must pass all CI checks before merge.
 
 ---
 
@@ -144,6 +175,26 @@ Once linting is configured, CI will enforce it automatically and PRs that fail l
 | Architecture decisions or guides | `docs/` |
 
 See the root [README.md](./README.md) for the full directory layout.
+
+---
+
+## Dependency Maintenance Policy
+
+OpenUni uses **GitHub Dependabot** to automate security updates and dependency maintenance across the codebase:
+
+### Scheduled Runs & Grouping
+- **Schedule:** Automated checks run weekly on **Monday at 04:00 UTC**.
+- **Monitored Ecosystems:**
+  - `pip`: Python dependencies for `apps/api/` and `packages/ingestion/`
+  - `npm`: Frontend packages for `apps/web/`
+  - `github-actions`: Workflows in `.github/workflows/`
+- **Grouping:** Minor and patch updates are automatically grouped into single batch pull requests to reduce notification noise. Major version bumps remain as separate PRs to allow focused review on breaking changes.
+- **Labels & Prefixes:** Dependabot PRs are automatically tagged with the `dependencies` label and use the conventional commit prefix `chore(deps):`.
+
+### Review & Merge Guidelines
+1. **Automated CI:** All Dependabot pull requests must pass their respective CI workflows (`ci-api`, `ci-ingestion`, `ci-web`).
+2. **Minor & Patch Updates:** Grouped minor/patch PRs can be merged after automated CI verification passes.
+3. **Major Updates:** Major version updates require manual review, changelog inspection, and validation against breaking changes before merging.
 
 ---
 
